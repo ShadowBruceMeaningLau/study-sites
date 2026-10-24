@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
   ============================================================================
-   tray.ps1 -- system-tray launcher for the four study sites.
+   tray.ps1 -- system-tray launcher for the five study sites.
 
    Turns the old black window (start-all.cmd + node serve-all.mjs) into a tray
    icon: the servers run in the background with no window at all, and the
@@ -34,7 +34,7 @@
 #>
 [CmdletBinding()]
 param(
-  # Open the four sites once the servers are ready (never used by logon autostart)
+  # Open the five sites once the servers are ready (never used by logon autostart)
   [switch]$OpenBrowser,
   # Show the tray but do not start the servers
   [switch]$NoStart,
@@ -82,7 +82,8 @@ $SITES = @(
   [pscustomobject]@{ key = 'cs';         dir = 'cs';         port = 8123; label = (T 'site.cs' 'CS') },
   [pscustomobject]@{ key = 'math';       dir = 'math';       port = 8124; label = (T 'site.math' 'Math') },
   [pscustomobject]@{ key = 'physics';    dir = 'physics';    port = 8125; label = (T 'site.physics' 'Physics') },
-  [pscustomobject]@{ key = 'philosophy'; dir = 'philosophy'; port = 8126; label = (T 'site.philosophy' 'Philosophy') }
+  [pscustomobject]@{ key = 'philosophy'; dir = 'philosophy'; port = 8126; label = (T 'site.philosophy' 'Philosophy') },
+  [pscustomobject]@{ key = 'llm';        dir = 'llm';        port = 8127; label = (T 'site.llm' 'LLM/AI') }
 )
 
 # node.exe (if missing we fall back to file:// , same as start-all.cmd does)
@@ -276,10 +277,10 @@ if ($SelfTest) {
   while ((Get-Date) -lt $deadline) {
     Start-Sleep -Milliseconds 400
     $st = Update-Status
-    if ($st.up -eq 4) { break }
+    if ($st.up -eq 5) { break }
     if ($script:Child -and $script:Child.HasExited) { break }
   }
-  Check (T 'selftest.ready' 'all four sites answer HTTP 200') ($st.up -eq 4) ((T 'selftest.up' '{0}/4 up') -f $st.up)
+  Check (T 'selftest.ready' 'all five sites answer HTTP 200') ($st.up -eq 5) ((T 'selftest.up' '{0}/5 up') -f $st.up)
   Check (T 'selftest.alive' 'server process alive') ([bool]($script:Child -and -not $script:Child.HasExited)) ''
   Check (T 'selftest.log' 'log written (banner present)') ((Test-Path $LogFile) -and ((Get-Content $LogFile -Raw -Encoding UTF8) -match "\u5b66\u4e60\u7ad9\u5df2\u542f\u52a8")) $LogFile
 
@@ -294,7 +295,7 @@ if ($SelfTest) {
   Stop-Servers
   Start-Sleep -Milliseconds 900
   $after = Update-Status
-  Check (T 'selftest.released' 'ports released after stop') ($after.up -eq 0) ((T 'selftest.still' '{0}/4 still answering') -f $after.up)
+  Check (T 'selftest.released' 'ports released after stop') ($after.up -eq 0) ((T 'selftest.still' '{0}/5 still answering') -f $after.up)
 
   $orphan = @(Get-CimInstance Win32_Process -Filter "Name='node.exe'" -ErrorAction SilentlyContinue |
               Where-Object { $_.CommandLine -and $_.CommandLine.Contains('serve-all.mjs') -and $_.CommandLine.Contains($Root) })
@@ -325,7 +326,7 @@ function New-TrayIcon([string]$phase) {
     $g   = [System.Drawing.Graphics]::FromImage($bmp)
     $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
     switch ($phase) {
-      'run'     { $c = [System.Drawing.Color]::FromArgb(255, 22, 138, 74) }   # green: 4/4
+      'run'     { $c = [System.Drawing.Color]::FromArgb(255, 22, 138, 74) }   # green: 5/5
       'partial' { $c = [System.Drawing.Color]::FromArgb(255, 196, 122, 8) }   # amber: some up
       default   { $c = [System.Drawing.Color]::FromArgb(255, 110, 116, 126) } # grey: stopped
     }
@@ -372,7 +373,7 @@ $miStatus.Enabled = $false
 [void]$menu.Items.Add($miStatus)
 [void]$menu.Items.Add((New-Sep))
 
-$miOpenAll = New-Mi (T 'menu.openAll' 'Open all four sites') { Open-AllSites }
+$miOpenAll = New-Mi (T 'menu.openAll' 'Open all five sites') { Open-AllSites }
 [void]$menu.Items.Add($miOpenAll)
 
 $miSite = @{}
@@ -413,7 +414,7 @@ $miLog = New-Mi (T 'menu.log' 'View log') {
 # Stop entry stays disabled -- this lets the user take the ports back.
 $miKill = New-Mi (T 'menu.killExternal' 'Stop servers started elsewhere') {
   $answer = [System.Windows.Forms.MessageBox]::Show(
-    (T 'dialog.killExternalText' 'Servers on ports 8123-8126 were started outside this tray. Stop them now?'),
+    (T 'dialog.killExternalText' 'Servers on ports 8123-8127 were started outside this tray. Stop them now?'),
     (T 'dialog.killExternalTitle' 'Study sites'),
     [System.Windows.Forms.MessageBoxButtons]::YesNo,
     [System.Windows.Forms.MessageBoxIcon]::Warning)
@@ -455,7 +456,7 @@ $miAutostart.CheckOnClick = $true
 
 [void]$menu.Items.Add((New-Sep))
 $miAbout = New-Mi (T 'menu.about' 'About') {
-  [void][System.Windows.Forms.MessageBox]::Show((T 'dialog.aboutText' 'Four study sites.'), (T 'dialog.aboutTitle' 'Study sites'))
+  [void][System.Windows.Forms.MessageBox]::Show((T 'dialog.aboutText' 'Five study sites.'), (T 'dialog.aboutTitle' 'Study sites'))
 }
 [void]$menu.Items.Add($miAbout)
 
@@ -481,16 +482,16 @@ function Update-Ui {
   $st = Update-Status
   $down = @($SITES | Where-Object { -not $st.states[$_.key] } | ForEach-Object { $_.label })
 
-  if ($st.up -eq 4) {
+  if ($st.up -eq 5) {
     $notify.Icon = $script:IconRun
-    $miStatus.Text = T 'menu.statusRunning' 'Status: running (4/4)'
+    $miStatus.Text = T 'menu.statusRunning' 'Status: running (5/5)'
   } elseif ($st.up -eq 0) {
     $notify.Icon = $script:IconStop
     if ($NodeExe) { $miStatus.Text = T 'menu.statusStopped' 'Status: stopped' }
     else { $miStatus.Text = T 'menu.statusNoNode' 'Status: Node.js not found' }
   } else {
     $notify.Icon = $script:IconPartial
-    $miStatus.Text = (T 'menu.statusPartial' 'Status: {0}/4 up ({1} down)') -f $st.up, ($down -join ', ')
+    $miStatus.Text = (T 'menu.statusPartial' 'Status: {0}/5 up ({1} down)') -f $st.up, ($down -join ', ')
   }
   if ($st.external) { $miStatus.Text = $miStatus.Text + (T 'menu.statusExternal' ' - started elsewhere') }
 
@@ -507,16 +508,16 @@ function Update-Ui {
   $miKill.Enabled    = [bool]$st.external
 
   $short = T 'short.stopped' 'stopped'
-  if ($st.up -eq 4) { $short = T 'short.running' 'running 4/4' }
-  elseif ($st.up -gt 0) { $short = (T 'short.partial' 'partial {0}/4') -f $st.up }
+  if ($st.up -eq 5) { $short = T 'short.running' 'running 5/5' }
+  elseif ($st.up -gt 0) { $short = (T 'short.partial' 'partial {0}/5') -f $st.up }
   $notify.Text = (T 'tooltip' 'Study sites - {0}') -f $short
   if ($notify.Text.Length -gt 60) { $notify.Text = $notify.Text.Substring(0, 60) }
 
-  if ($script:PendingOpen -and $st.up -eq 4) {
+  if ($script:PendingOpen -and $st.up -eq 5) {
     $script:PendingOpen = $false
     Open-AllSites
   }
-  if (-not $script:Announced -and $st.up -eq 4) {
+  if (-not $script:Announced -and $st.up -eq 5) {
     $script:Announced = $true
     if ($script:Config.balloon) {
       $notify.ShowBalloonTip(4000, (T 'balloon.readyTitle' 'Sites ready'), (T 'balloon.readyText' 'Right-click the tray icon to open them.'), [System.Windows.Forms.ToolTipIcon]::Info)
@@ -565,7 +566,7 @@ $menu.Add_Opening({
 $notify.Add_DoubleClick({ Open-AllSites })
 $notify.Add_MouseClick({
   if ($_.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-    $hint = (T 'balloon.clickHint' 'Double-click to open all four sites.')
+    $hint = (T 'balloon.clickHint' 'Double-click to open all five sites.')
     $notify.ShowBalloonTip(2500, (T 'appName' 'Study sites'), ($notify.Text + "`r`n" + $hint), [System.Windows.Forms.ToolTipIcon]::Info)
   }
 })

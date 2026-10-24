@@ -1,12 +1,12 @@
 // ============================================================================
-//  serve-all.mjs —— 一次启动四个学习站的服务，并把网址（含手机可用的局域网地址）全部打印出来
+//  serve-all.mjs —— 一次启动五个学习站的服务，并把网址（含手机可用的局域网地址）全部打印出来
 //
 //  用法：node tools/serve-all.mjs [--lan | --local]
 //        （不带参数时默认 --lan：监听 0.0.0.0，手机/平板连同一个 WiFi 就能打开）
 //
-//  为什么是「四个服务」而不是「一个服务 + 四个路径」：
+//  为什么是「五个服务」而不是「一个服务 + 五个路径」：
 //  每个站用自己的端口、自己的目录当根，所以
-//    · 任何一个站挂掉/端口被占，不影响另外三个；
+//    · 任何一个站挂掉/端口被占，不影响另外四个；
 //    · 每个站的进度各存各的（<站>/.progress/），互不干扰；
 //    · 单站启动脚本（cs\start.cmd、math\start-math.cmd…）仍然各自可用，
 //      它们与本站不共享代码——工作区的约定是「删掉任意一个站，其余照常运行」。
@@ -32,7 +32,8 @@ const SITES = [
   { key: "cs", label: "计算机", dir: "cs", port: 8123 },
   { key: "math", label: "数学", dir: "math", port: 8124 },
   { key: "physics", label: "物理", dir: "physics", port: 8125 },
-  { key: "philosophy", label: "哲学", dir: "philosophy", port: 8126 }
+  { key: "philosophy", label: "哲学", dir: "philosophy", port: 8126 },
+  { key: "llm", label: "AI", dir: "llm", port: 8127 }
 ];
 
 const MIME = {
@@ -185,7 +186,7 @@ function finish() {
 
   console.log("");
   console.log(line);
-  console.log("  四个学习站已启动" + (LAN ? "（手机 / 平板连同一个 WiFi 即可打开）" : "（仅本机可访问）"));
+  console.log("  五个学习站已启动" + (LAN ? "（手机 / 平板连同一个 WiFi 即可打开）" : "（仅本机可访问）"));
   console.log(line);
   for (const r of results) {
     if (!r) continue;
@@ -211,7 +212,7 @@ function finish() {
       ? "  [提示] 想用手机打开：右键托盘图标 → 服务 → 取消勾选「仅本机访问（关掉手机访问）」"
       : "  [提示] 想用手机打开：node tools\\serve-all.mjs --lan");
   }
-  console.log("  四个站各自独立：某个站端口被占只影响它自己，其余照常运行。");
+  console.log("  五个站各自独立：某个站端口被占只影响它自己，其余照常运行。");
   console.log(FROM_TRAY
     ? "  停止全部服务：右键托盘图标 → 退出（停止服务）"
     : "  停止全部服务：关闭本窗口，或按 Ctrl+C");
