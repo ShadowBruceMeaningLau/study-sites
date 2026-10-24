@@ -466,15 +466,15 @@ if (FIXTURE) {
 } else try {
   const ids = courses.map((c) => c.id);
   // LLM 站主干清单：随波次交付逐步加入；W7 收口时必须是完整 23 门。
-  const must = [];
+  const must = ["llm-zero-basics", "python-basics-ai"];
   const missing = must.filter((m) => !ids.includes(m));
   ok(missing.length === 0, "培养方案主干课程齐全（" + courses.length + " 门）", "缺：" + missing.join(", "));
   const labCount = lessons.reduce((n, x) => n + (x.l.blocks || []).filter((b) => b.type === "interactive").length, 0);
-  // 规模门槛随波次上调：W0≥1 → W1≥15 → W2≥50 → … → W7 收口时 ≥150（对齐 cs 的 204 同数量级）
-  ok(labCount >= 1, "交互实验总数 = " + labCount);
+  // 规模门槛随波次上调：W0≥1 → W1≥4 → W2≥30 → … → W7 收口时 ≥150（对齐 cs 的 204 同数量级）
+  ok(labCount >= 4, "交互实验总数 = " + labCount);
   const qCount = lessons.reduce((n, x) => n + (x.l.quiz || []).length, 0);
-  // W0≥6 → … → W7 收口时 ≥800（对齐 cs 的 677 同数量级）
-  ok(qCount >= 6, "测验题总数 = " + qCount);
+  // W0≥6 → W1≥40 → … → W7 收口时 ≥800（对齐 cs 的 677 同数量级）
+  ok(qCount >= 40, "测验题总数 = " + qCount);
   const dup = {};
   let dupN = 0;
   lessons.forEach(({ l }) => {

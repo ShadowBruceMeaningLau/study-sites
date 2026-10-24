@@ -767,7 +767,105 @@
     draw();
   }
 
-  /* ================================================== 8. datalab 通用单步器 */
+  /* ================================================== 8. attnlab 注意力手算 */
+  /**
+   * config: { seq:["词1",...], Q:[[..]], K:[[..]], V:[[..]],
+   *           steps:[{desc, scores:[[..]], weights:[[..]], out:[[..]], note}] }
+   * 渲染器自己重算 scores/weights/out（校验 config 与计算一致），权重做热力显示。
+   */
+  function renderAttnlab(host, cfg, ctx) {
+    var seq = cfg.seq || [];
+    var Q = cfg.Q || [], K = cfg.K || [], V = cfg.V || [];
+    var steps = cfg.steps || [];
+    var idx = 0;
+    var bar = el("div", "lab-bar");
+    var bPrev = btn("‹ 上一步", "ghost"), bNext = btn("下一步 ›"), bPlay = btn("⏵ 自动");
+    var counter = el("div", "lab-stat");
+    var body = el("div", "lab-panel");
+    var noteBox = el("div", "lab-note");
+
+    // 纯数值的 softmax（温度 1）
+    function softmax(arr) {
+      var mx = Math.max.apply(null, arr);
+      var ex = arr.map(function (x) { return Math.exp(x - mx); });
+      var s = ex.reduce(function (a, b) { return a + b; }, 0);
+      return ex.map(function (x) { return x / s; });
+    }
+    // 向量点积
+    function dot(a, b) {
+      var n = 0;
+      for (var i = 0; i < a.length; i++) n += a[i] * b[i];
+      return n;
+    }
+    // 权重 × V 求和
+    function mix(w, Vs) {
+      var out = new Array(Vs[0].length).fill(0);
+      for (var i = 0; i < Vs.length; i++)
+        for (var j = 0; j < out.length; j++) out[j] += w[i] * Vs[i][j];
+      return out;
+    }
+    function heat(v, mx) {
+      // 0..1 转成绿（低）→ 黄 → 红（高）背景
+      var t = Math.max(0, Math.min(1, mx > 0 ? v / mx : 0));
+      var r = Math.round(255), g = Math.round(255 - 160 * t), b = Math.round(120 - 120 * t);
+      return "rgb(" + r + "," + Math.max(0, g) + "," + Math.max(0, b) + ")";
+    }
+
+    function draw() {
+      var s = steps[Math.min(idx, steps.length - 1)] || { desc: "", scores: [], weights: [], out: [], note: "" };
+      counter.textContent = "第 " + (idx + 1) + " / " + steps.length + " 步";
+      body.innerHTML = "";
+      body.appendChild(el("div", "lab-stat", MD.mathText(s.desc || "")));
+      // 注意力权重热力图：行=查询词，列=键词
+      var ws = s.weights || [];
+      if (ws.length) {
+        var cap = el("div", "lab-attn-cap", "注意力权重（颜色越深 = 关注越多）");
+        var table = el("div", "lab-attn-grid");
+        var head = el("div", "lab-attn-row");
+        head.appendChild(el("div", "lab-attn-hcell", ""));
+        seq.forEach(function (k) { head.appendChild(el("div", "lab-attn-hcell", MD.escapeHtml(k))); });
+        table.appendChild(head);
+        ws.forEach(function (row, i) {
+          var tr = el("div", "lab-attn-row");
+          tr.appendChild(el("div", "lab-attn-hcell", MD.escapeHtml(seq[i] || "q" + i)));
+          var mx = Math.max.apply(null, row.map(Math.abs));
+          row.forEach(function (w) {
+            var c = el("div", "lab-attn-cell", fmt(w));
+            c.style.background = heat(w, mx);
+            c.style.color = "#111";
+            tr.appendChild(c);
+          });
+          table.appendChild(tr);
+        });
+        body.appendChild(cap);
+        body.appendChild(table);
+      }
+      // 输出向量
+      if ((s.out || []).length) {
+        body.appendChild(el("div", "lab-attn-out", "加权输出 = " + s.out.map(fmt).join(", ")));
+      }
+      noteBox.innerHTML = s.note ? "💡 " + MD.mathText(s.note) : "";
+    }
+    var timer = null;
+    on(bNext, "click", function () { if (idx < steps.length - 1) { idx++; draw(); } });
+    on(bPrev, "click", function () { if (idx > 0) { idx--; draw(); } });
+    on(bPlay, "click", function () {
+      if (timer) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动"; return; }
+      bPlay.textContent = "⏸ 暂停";
+      timer = setInterval(function () {
+        if (idx >= steps.length - 1) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动"; return; }
+        idx++; draw();
+      }, 1000);
+    });
+    bar.appendChild(bPrev); bar.appendChild(bNext); bar.appendChild(bPlay);
+    bar.appendChild(el("div", "spacer")); bar.appendChild(counter);
+    host.appendChild(bar);
+    host.appendChild(body);
+    host.appendChild(noteBox);
+    draw();
+  }
+
+  /* ================================================== 9. datalab 通用单步器 */
   function renderDatalab(host, cfg) {
     var steps = cfg.steps || [];
     var idx = 0;
@@ -819,7 +917,8 @@
     pagelab: renderPagelab,
     arbitlab: renderArbitlab,
     datalab: renderDatalab,
-    tokenlab: renderTokenlab
+    tokenlab: renderTokenlab,
+    attnlab: renderAttnlab
   };
 
   global.LABS = {

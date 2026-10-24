@@ -29,7 +29,7 @@ const isArr = (v) => Array.isArray(v);
 
 const CODE_LANGS = new Set(["c", "cpp", "python", "java", "js", "asm", "sql", "bash", "text"]);
 const BLOCK_TYPES = new Set(["concept", "steps", "analogy", "code", "pitfall", "calc", "interactive", "lab"]);
-const LABS = new Set(["pathlab", "schedlab", "cpulab", "pagelab", "arbitlab", "datalab", "tokenlab"]);
+const LABS = new Set(["pathlab", "schedlab", "cpulab", "pagelab", "arbitlab", "datalab", "tokenlab", "attnlab"]);
 const QUIZ_TYPES = new Set(["single", "multi", "fill", "order"]);
 
 /** 中文可用字数（粗略）：不算标点与空白，用于判断解释是否敷衍 */
@@ -168,6 +168,17 @@ function checkInteractive(file, where, blk, courseId) {
             if (!isObj(s) || !isNonEmptyStr(s.desc)) err(file, where, `tokenlab.steps[${i}] 需要 {desc, tokens, ids, note}`);
             if (!isArr(s.tokens) || !isArr(s.ids) || s.tokens.length !== s.ids.length)
               err(file, where, `tokenlab.steps[${i}].tokens 与 .ids 必须等长数组`);
+          });
+      }
+      if (blk.lab === "attnlab") {
+        if (!isArr(c.seq) || c.seq.length < 2) err(file, where, "attnlab.config.seq 至少 2 个词");
+        if (!isArr(c.Q) || !isArr(c.K) || !isArr(c.V)) err(file, where, "attnlab.config 需要 Q/K/V 三个矩阵");
+        if (!isArr(c.steps) || c.steps.length < 3) err(file, where, "attnlab.config.steps 至少 3 步");
+        else
+          c.steps.forEach((s, i) => {
+            if (!isObj(s) || !isNonEmptyStr(s.desc)) err(file, where, `attnlab.steps[${i}] 需要 {desc, weights, out, note}`);
+            if (!isArr(s.weights)) err(file, where, `attnlab.steps[${i}].weights 必须是矩阵`);
+            if (!isArr(s.out)) err(file, where, `attnlab.steps[${i}].out 必须是向量`);
           });
       }
       if (c.tasks !== undefined) {
