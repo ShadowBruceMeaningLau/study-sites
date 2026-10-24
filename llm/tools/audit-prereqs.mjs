@@ -68,7 +68,10 @@ for (const { file, course } of packs) {
   }
 
   // 3) 零基础课不允许"建议先学"
-  if (/零基础/.test(need) && /建议先学|先学/.test(need)) {
+  //    先把站内课名引用「……」剥掉再判断：课名本身可能含"零基础"三个字
+  //    （例如「LLM 零基础入门」），那是被引用的课名，不代表本课声称零基础。
+  const needBare = need.replace(/「[^」]*」/g, "（课名）");
+  if (/零基础/.test(needBare) && /建议先学|先学/.test(needBare)) {
     problems.push("矛盾写法：声称零基础可学，又写「建议先学」");
   }
 
@@ -85,7 +88,7 @@ for (const { file, course } of packs) {
     console.log("  need: " + need);
     for (const p of problems) console.log("   ✗ " + p);
   } else {
-    const tag = /零基础/.test(need) ? "零基础可学" : "前置 " + refs.length + " 门（" + refs.join("、") + "）";
+    const tag = /零基础/.test(needBare) ? "零基础可学" : "前置 " + refs.length + " 门（" + refs.join("、") + "）";
     console.log(pad(course.id, 30) + pad(course.title, 24) + tag);
   }
 }
