@@ -1,0 +1,18 @@
+============================================================
+模糊描述：工具名 read_file：读文件。参数 path。
+用户：把 notes.txt 读出来看看。
+模型：{"name": read_file, "arguments": {"path": "notes.txt"}}
+用户：帮我看看 data 目录下所有文件。
+模型：{"name": read_file, "arguments": {"path": "data/"} }
+用户：读一下 /etc/hosts 的内容。
+模型：{"name": read_file, "arguments": {"path": "/etc/hosts"}}
+
+============================================================
+精确描述：工具名 read_file：读取一个 UTF-8 文本文件的前 N 个字节并返回内容。参数：(1) path，字符串，必填，相对路径，例如 notes.txt，不能包含 .. ；(2) max_bytes，整数，可选，范围 1~1048576，缺省 4096。
+用户：把 notes.txt 读出来看看。
+模型：{"name": read_file, "arguments": {"path": "notes.txt", "max_bytes": 4096}}
+用户：帮我看看 data 目录下所有文件。
+模型：{"name": read_file, "arguments": {"path": ".", "max_bytes": 4096}}
+用户：读一下 /etc/hosts 的内容。
+模型：{"name": read_file, "arguments": {"path": "/etc/hosts", "max_bytes": 4096}}
+
