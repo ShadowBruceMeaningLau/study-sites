@@ -50,18 +50,18 @@ need: "建议先学「Python 编程基础」「机器学习与深度学习基础
 
 ---
 
-## 3. LLM 站六类交互实验（`interactive` 块的 `lab` 取值）
+## 3. LLM 站交互实验（`interactive` 块的 `lab` 取值；12 类已全部实现）
 
 | lab | config 结构（严格遵守） |
 |---|---|
 | `tokenlab` | `{ text:"要被分词的文本", merges:[["a","b"],["ab","c"]], vocab:{"a":10,"b":11,"ab":12,"c":13}, steps:[{desc, tokens:[...], ids:[...], note}] }`——展示 BPE 逐步合并；steps 至少 4 步 |
 | `attnlab` | `{ seq:["词1","词2","词3"], d:2, Q:[[..],[..]], K:[[..],[..]], V:[[..],[..]], steps:[{desc, scores:[[..]], weights:[[..]], out:[[..]], note}] }`——注意力手算；steps 至少 4 步 |
 | `samplab` | `{ prompt:"可选的一句话提示", logits:[{token:"巴黎",logit:3.0},{token:"里昂",logit:1.5}], temperature:1, topK:0, topP:1, seed:20261024, steps:[{desc, temperature?, topK?, topP?, note}] }`——`logits` 至少 2 个候选词；`topK:0` 表示不限、`topP:1` 表示不截断；给了 `steps` 就能"上个场景 / 下个场景 / 自动播放"逐步演示；页面上的三个滑杆可以实时改温度、top-k、top-p，并显示"剪掉 / 保留 / 归一化后概率"与可复现的抽样结果（同一种子必然抽到同一个词） |
-| `ragsteps` | `{ query:"查询", docs:[{id, text}], chunkSize:120, emb:{doc1:[..],doc2:[..]}, steps:[{desc, stage:"chunk|embed|retrieve|prompt", data:"展示文本", note}] }`——切分→嵌入→检索→拼 prompt 分步演示 |
-| `agenttrace` | `{ task:"任务描述", steps:[{desc, kind:"thought|action|observation|finish", text, note}] }`——ReAct 轨迹回放，kind 必须合法 |
-| `protolab` | `{ scenario:"场景描述", parties:[{name, role}], links:[{from,to,proto,desc}], steps:[{desc, note}] }`——协议生态角色连线图 |
+| `ragsteps` | `{ query:"查询", docs:[{id, text}], chunkSize:120, qemb:[..]?（可选，问题向量）, emb:{docId:[..]}, steps:[{desc, stage:"chunk","embed","retrieve","prompt", data, note}] }`——渲染器会**真算**按句切分与余弦排序；`qemb` 给了就展示相似度排名，没给则只讲流程；steps 至少 3 步，四个 stage 建议都覆盖（缺了会告警） |
+| `agenttrace` | `{ task:"任务描述", steps:[{desc, kind:"thought","action","observation","finish", text, note}] }`——ReAct 轨迹回放（思考→行动→观察循环）；steps 至少 3 步，必须含 thought 与 action 各一步，没有 observation/finish 会告警 |
+| `protoplab` | `{ scenario:"场景描述", parties:[{name, role}], links:[{from, to, proto, desc}], steps:[{desc, note}] }`——角色卡片 + 协议连线图；`links.from/to` 必须是 `parties` 里出现过的 name（validator 会查），每走一步点亮一条连线 |
 
-沿用 cs 的 `datalab`（通用单步执行器）也可用，但 **LLM 课优先用上面六类**。
+沿用 cs 的 `datalab`（通用单步执行器）也可用，但 **LLM 课优先用上面 LLM 专有实验**。
 全部 config 驱动、数据文件禁函数、数值全部纯浏览器可算（**不得依赖运行中的模型或联网**）。
 
 ---

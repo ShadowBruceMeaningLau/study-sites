@@ -1091,6 +1091,276 @@
     draw();
   }
 
+  /* ============================================ 11. ragsteps RAG 四步流水线 */
+  /**
+   * config: { query:"查询", docs:[{id, text}], chunkSize:120, qemb:[..]?, emb:{docId:[..]},
+   *           steps:[{desc, stage:"chunk|embed|retrieve|prompt", data, note}] }
+   * 渲染器真算两件事：① 按句边界把文档打包成块；② 给了 qemb 就用余弦相似度真排序。
+   */
+  function renderRagsteps(host, cfg, ctx) {
+    var docs = cfg.docs || [];
+    var size = Number(cfg.chunkSize) || 120;
+    var steps = cfg.steps || [];
+    var qemb = cfg.qemb || null;
+    var emb = cfg.emb || {};
+    var STAGES = ["chunk", "embed", "retrieve", "prompt"];
+    var STAGE_CN = { chunk: "① 切分", embed: "② 嵌入", retrieve: "③ 检索", prompt: "④ 拼提示" };
+    var idx = 0;
+
+    function splitSentences(t) {
+      var out = [], buf = "";
+      for (var i = 0; i < t.length; i++) {
+        var ch = t.charAt(i);
+        buf += ch;
+        if ("。！？；!?;\n".indexOf(ch) >= 0) { if (buf.replace(/\s+/g, "")) { out.push(buf.trim()); } buf = ""; }
+      }
+      if (buf.replace(/\s+/g, "")) { out.push(buf.trim()); }
+      return out;
+    }
+    // 按句子打包：尽量塞满 chunkSize，但不把一句话劈成两半
+    function chunkText(t, sz) {
+      var chunks = [], cur = "";
+      splitSentences(String(t || "")).forEach(function (s) {
+        if (cur && (cur + s).length > sz) { chunks.push(cur); cur = s; } else { cur += s; }
+      });
+      if (cur) { chunks.push(cur); }
+      return chunks;
+    }
+    function cos(a, b) {
+      var d = 0, na = 0, nb = 0;
+      for (var i = 0; i < a.length; i++) { d += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+      return (na && nb) ? d / Math.sqrt(na * nb) : 0;
+    }
+    var allChunks = [];
+    docs.forEach(function (d) {
+      chunkText(d.text, size).forEach(function (c, i) { allChunks.push({ doc: d.id, i: i, text: c }); });
+    });
+    var ranking = null;
+    if (qemb && qemb.length) {
+      ranking = docs.map(function (d) {
+        var e = emb[d.id];
+        return { id: d.id, score: (e && e.length === qemb.length) ? cos(qemb, e) : null };
+      }).filter(function (r) { return r.score !== null; }).sort(function (a, b) { return b.score - a.score; });
+    }
+    // 小向量条形图（0.25 / -0.8 这种玩具向量也能看清正负）
+    function vecBars(vec) {
+      var box = el("div", "lab-vec");
+      var mx = Math.max.apply(null, vec.map(function (x) { return Math.abs(x); })) || 1;
+      vec.forEach(function (x) {
+        var cell = el("div", "lab-vec-cell");
+        var fill = el("div", "lab-vec-fill" + (x < 0 ? " neg" : ""));
+        fill.style.height = Math.max(2, Math.round(Math.abs(x) / mx * 100)) + "%";
+        cell.appendChild(fill);
+        cell.appendChild(el("div", "lab-vec-num", String(Math.round(x * 100) / 100)));
+        box.appendChild(cell);
+      });
+      return box;
+    }
+
+    var bar = el("div", "lab-bar");
+    var bPrev = btn("‹ 上一步", "ghost"), bNext = btn("下一步 ›"), bPlay = btn("⏵ 自动");
+    var counter = el("div", "lab-stat");
+    var stageBar = el("div", "lab-stagebar");
+    var body = el("div", "lab-panel");
+    var noteBox = el("div", "lab-note");
+
+    function draw() {
+      var s = steps[Math.min(idx, steps.length - 1)] || { desc: "", stage: "chunk", data: "", note: "" };
+      counter.textContent = "第 " + (idx + 1) + " / " + steps.length + " 步";
+      stageBar.innerHTML = "";
+      STAGES.forEach(function (k) {
+        stageBar.appendChild(el("span", "lab-stage" + (k === s.stage ? " on" : ""), STAGE_CN[k]));
+      });
+      body.innerHTML = "";
+      body.appendChild(el("div", "lab-stat", MD.mathText(s.desc || "")));
+
+      if (s.stage === "chunk") {
+        body.appendChild(el("div", "lab-sub", "共 " + docs.length + " 篇文档 → " + allChunks.length + " 个块"
+          + "（chunkSize=" + size + "；按句边界打包，不切断句子）"));
+        var box = el("div", "lab-chunks");
+        allChunks.forEach(function (c) {
+          var chip = el("div", "lab-chunk");
+          chip.appendChild(el("div", "lab-chunk-head", MD.escapeHtml(c.doc) + " 第 " + (c.i + 1) + " 块 · " + c.text.length + " 字"));
+          chip.appendChild(el("div", "lab-chunk-body", MD.escapeHtml(c.text)));
+          box.appendChild(chip);
+        });
+        body.appendChild(box);
+      } else if (s.stage === "embed") {
+        body.appendChild(el("div", "lab-sub", "每篇文档 → 一个向量（这里画的是玩具向量；真实模型通常 768 维以上）"));
+        docs.forEach(function (d) {
+          var row = el("div", "lab-embed-row");
+          row.appendChild(el("div", "lab-embed-name", MD.escapeHtml(d.id)));
+          var e = emb[d.id];
+          row.appendChild(e && e.length ? vecBars(e) : el("div", "lab-sub", "（config 未给 " + MD.escapeHtml(d.id) + " 的向量）"));
+          body.appendChild(row);
+        });
+      } else if (s.stage === "retrieve") {
+        if (ranking && ranking.length) {
+          body.appendChild(el("div", "lab-sub", "余弦相似度排序（渲染器真算）：越接近 1 越像"));
+          var mx = ranking[0].score || 1;
+          ranking.forEach(function (r, i) {
+            var row = el("div", "lab-rank");
+            row.appendChild(el("div", "lab-rank-no", "第 " + (i + 1)));
+            row.appendChild(el("div", "lab-rank-name", MD.escapeHtml(r.id)));
+            var track = el("div", "lab-rank-track");
+            var fill = el("div", "lab-rank-fill");
+            fill.style.width = Math.max(3, Math.round(r.score / (mx || 1) * 100)) + "%";
+            track.appendChild(fill);
+            row.appendChild(track);
+            row.appendChild(el("div", "lab-rank-score", String(Math.round(r.score * 1000) / 1000)));
+            body.appendChild(row);
+          });
+        } else {
+          body.appendChild(el("div", "lab-sub", "（config 未给 qemb，这里无法真算相似度——看下面的说明文字）"));
+        }
+        if (s.data) { body.appendChild(el("div", "lab-data", MD.escapeHtml(s.data))); }
+      } else if (s.data) {
+        body.appendChild(el("div", "lab-data", MD.escapeHtml(s.data)));
+      }
+      noteBox.innerHTML = s.note ? "💡 " + MD.mathText(s.note) : "";
+    }
+    var timer = null;
+    on(bNext, "click", function () { if (idx < steps.length - 1) { idx++; draw(); } });
+    on(bPrev, "click", function () { if (idx > 0) { idx--; draw(); } });
+    on(bPlay, "click", function () {
+      if (timer) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动"; return; }
+      bPlay.textContent = "⏸ 暂停";
+      timer = setInterval(function () {
+        if (idx >= steps.length - 1) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动"; return; }
+        idx++; draw();
+      }, 1400);
+    });
+    bar.appendChild(bPrev); bar.appendChild(bNext); bar.appendChild(bPlay);
+    bar.appendChild(el("div", "spacer")); bar.appendChild(counter);
+    host.appendChild(bar);
+    host.appendChild(stageBar);
+    host.appendChild(body);
+    host.appendChild(noteBox);
+    draw();
+  }
+
+  /* ============================================ 12. agenttrace ReAct 回放 */
+  /**
+   * config: { task:"任务描述", steps:[{desc, kind:"thought|action|observation|finish", text, note}] }
+   * 把「思考 → 行动 → 观察」的循环一步步展开，让人看清 agent 并不是一口气给出答案。
+   */
+  function renderAgenttrace(host, cfg, ctx) {
+    var steps = cfg.steps || [];
+    var KIND = {
+      thought: { icon: "🤔", cn: "思考", cls: "thought" },
+      action: { icon: "🔧", cn: "行动", cls: "action" },
+      observation: { icon: "👀", cn: "观察", cls: "observation" },
+      finish: { icon: "✅", cn: "收尾", cls: "finish" }
+    };
+    var shown = Math.min(1, steps.length);
+    var bar = el("div", "lab-bar");
+    var bNext = btn("下一步 ›"), bAll = btn("全部展开", "ghost"), bReset = btn("⟲ 重来", "ghost");
+    var counter = el("div", "lab-stat");
+    var body = el("div", "lab-panel");
+    body.appendChild(el("div", "lab-task", "🎯 任务：" + MD.escapeHtml(String(cfg.task || ""))));
+    var list = el("div", "lab-trace");
+    body.appendChild(list);
+
+    function draw() {
+      counter.textContent = "已展开 " + Math.min(shown, steps.length) + " / " + steps.length + " 步";
+      list.innerHTML = "";
+      steps.slice(0, shown).forEach(function (s, i) {
+        var k = KIND[s.kind] || { icon: "•", cn: String(s.kind || "?"), cls: "other" };
+        var card = el("div", "lab-trace-card " + k.cls + (i === shown - 1 ? " cur" : ""));
+        var head = el("div", "lab-trace-head");
+        head.appendChild(el("span", "lab-trace-icon", k.icon));
+        head.appendChild(el("span", "lab-trace-kind", k.cn));
+        head.appendChild(el("span", "lab-trace-desc", MD.mathText(s.desc || "")));
+        card.appendChild(head);
+        if (s.text) { card.appendChild(el("div", "lab-trace-text", MD.escapeHtml(s.text))); }
+        if (s.note) { card.appendChild(el("div", "lab-note", "💡 " + MD.mathText(s.note))); }
+        list.appendChild(card);
+      });
+      if (shown >= steps.length && steps.length) {
+        list.appendChild(el("div", "lab-trace-end", "—— 轨迹结束 ——"));
+      }
+      bNext.disabled = shown >= steps.length;
+    }
+    on(bNext, "click", function () { if (shown < steps.length) { shown++; draw(); } });
+    on(bAll, "click", function () { shown = steps.length; draw(); });
+    on(bReset, "click", function () { shown = Math.min(1, steps.length); draw(); });
+    bar.appendChild(bReset); bar.appendChild(bNext); bar.appendChild(bAll);
+    bar.appendChild(el("div", "spacer")); bar.appendChild(counter);
+    host.appendChild(bar);
+    host.appendChild(body);
+    draw();
+  }
+
+  /* ============================================ 13. protolab 角色连线图 */
+  /**
+   * config: { scenario:"场景描述", parties:[{name, role}], links:[{from, to, proto, desc}],
+   *           steps:[{desc, note}] }
+   * 角色卡片 + 协议连线：每走一步点亮一条连线，讲清「谁跟谁、用什么协议」说话。
+   */
+  function renderProtoplab(host, cfg, ctx) {
+    var parties = cfg.parties || [];
+    var links = cfg.links || [];
+    var steps = cfg.steps || [];
+    var idx = 0;
+    var bar = el("div", "lab-bar");
+    var bPrev = btn("‹ 上一步", "ghost"), bNext = btn("下一步 ›"), bPlay = btn("⏵ 自动");
+    var counter = el("div", "lab-stat");
+    var body = el("div", "lab-panel");
+    var noteBox = el("div", "lab-note");
+    var partyBox = el("div", "lab-parties");
+    var linkBox = el("div", "lab-links");
+
+    body.appendChild(el("div", "lab-task", "🧩 场景：" + MD.escapeHtml(String(cfg.scenario || ""))));
+    parties.forEach(function (p) {
+      var card = el("div", "lab-party");
+      card.appendChild(el("div", "lab-party-name", MD.escapeHtml(String(p.name || ""))));
+      card.appendChild(el("div", "lab-party-role", MD.escapeHtml(String(p.role || ""))));
+      partyBox.appendChild(card);
+    });
+    body.appendChild(partyBox);
+    body.appendChild(linkBox);
+
+    function draw() {
+      var s = steps[Math.min(idx, steps.length - 1)] || { desc: "", note: "" };
+      counter.textContent = "第 " + (idx + 1) + " / " + steps.length + " 步";
+      linkBox.innerHTML = "";
+      links.forEach(function (l, i) {
+        var lit = steps.length ? (i <= idx) : true;
+        var row = el("div", "lab-link" + (lit ? " on" : ""));
+        row.appendChild(el("span", "lab-link-ends", MD.escapeHtml(String(l.from)) + " ⇄ " + MD.escapeHtml(String(l.to))));
+        row.appendChild(el("span", "lab-link-proto", MD.escapeHtml(String(l.proto || ""))));
+        if (l.desc) { row.appendChild(el("span", "lab-link-desc", MD.escapeHtml(String(l.desc)))); }
+        linkBox.appendChild(row);
+      });
+      var txt = s.desc ? MD.mathText(s.desc) : "";
+      if (s.note) { txt += (txt ? "　" : "") + "💡 " + MD.mathText(s.note); }
+      noteBox.innerHTML = txt;
+    }
+    if (!steps.length) {
+      host.appendChild(body);
+      host.appendChild(noteBox);
+      draw();
+      return;
+    }
+    var timer = null;
+    on(bNext, "click", function () { if (idx < steps.length - 1) { idx++; draw(); } });
+    on(bPrev, "click", function () { if (idx > 0) { idx--; draw(); } });
+    on(bPlay, "click", function () {
+      if (timer) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动"; return; }
+      bPlay.textContent = "⏸ 暂停";
+      timer = setInterval(function () {
+        if (idx >= steps.length - 1) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动"; return; }
+        idx++; draw();
+      }, 1400);
+    });
+    bar.appendChild(bPrev); bar.appendChild(bNext); bar.appendChild(bPlay);
+    bar.appendChild(el("div", "spacer")); bar.appendChild(counter);
+    host.appendChild(bar);
+    host.appendChild(body);
+    host.appendChild(noteBox);
+    draw();
+  }
+
   /* ------------------------------------------------------------ 导出 */
   var RENDERERS = {
     pathlab: renderPathlab,
@@ -1101,7 +1371,10 @@
     datalab: renderDatalab,
     tokenlab: renderTokenlab,
     attnlab: renderAttnlab,
-    samplab: renderSamplab
+    samplab: renderSamplab,
+    ragsteps: renderRagsteps,
+    agenttrace: renderAgenttrace,
+    protolab: renderProtoplab
   };
 
   global.LABS = {

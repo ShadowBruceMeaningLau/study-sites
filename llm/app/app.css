@@ -506,3 +506,85 @@ dialog.modal textarea {
 /* 出错兜底与未知命令 */
 .mr-math .mr-error { color: var(--bad); border-bottom: 1px dotted var(--bad); }
 .mr-math .mr-unknown { color: var(--warn); }
+/* ============ llm 站专有实验：ragsteps / agenttrace / protolab ============ */
+/* 1) ragsteps：阶段条 + 块列表 + 玩具向量条形图 + 相似度排名 */
+.lab-stagebar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.lab-stage {
+  font-size: 12px; padding: 3px 9px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--fg-faint); background: var(--panel-2);
+}
+.lab-stage.on { color: var(--bg); background: var(--accent); border-color: var(--accent); font-weight: 600; }
+.lab-sub { font-size: 12.5px; color: var(--fg-faint); margin: 6px 0 8px; }
+.lab-chunks { display: flex; flex-direction: column; gap: 8px; }
+.lab-chunk { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 8px 10px; background: var(--bg-soft); }
+.lab-chunk-head { font-family: var(--mono); font-size: 12px; color: var(--fg-dim); margin-bottom: 4px; }
+.lab-chunk-body { font-size: 13px; line-height: 1.6; color: var(--fg); }
+.lab-embed-row { display: flex; align-items: flex-end; gap: 12px; margin: 8px 0; }
+.lab-embed-name { flex: none; width: 92px; font-family: var(--mono); font-size: 12.5px; color: var(--fg-dim); }
+.lab-vec { display: flex; align-items: flex-end; gap: 6px; height: 86px; }
+.lab-vec-cell { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 44px; height: 100%; }
+.lab-vec-fill { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
+.lab-vec-fill.neg { background: var(--warn); }
+.lab-vec-num { font-family: var(--mono); font-size: 11px; color: var(--fg-faint); margin-top: 3px; }
+.lab-rank { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.lab-rank-no, .lab-rank-name, .lab-rank-score { font-family: var(--mono); font-size: 12.5px; }
+.lab-rank-no { flex: none; width: 42px; color: var(--fg-faint); }
+.lab-rank-name { flex: none; width: 96px; color: var(--fg); }
+.lab-rank-track { flex: 1; height: 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.lab-rank-fill { height: 100%; background: var(--ok); }
+.lab-rank-score { flex: none; width: 56px; text-align: right; color: var(--fg-dim); }
+.lab-data {
+  margin-top: 10px; padding: 10px; border: 1px dashed var(--line); border-radius: 8px;
+  background: var(--code-bg); font-family: var(--mono); font-size: 12.5px; line-height: 1.6;
+  white-space: pre-wrap; word-break: break-word; color: var(--fg);
+}
+
+/* 2) agenttrace：任务条 + 轨迹时间线 */
+.lab-task {
+  font-size: 13.5px; padding: 8px 10px; border-radius: 8px; margin-bottom: 10px;
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--fg);
+}
+.lab-trace { display: flex; flex-direction: column; gap: 8px; }
+.lab-trace-card {
+  border: 1px solid var(--line); border-left: 3px solid var(--fg-faint);
+  border-radius: 8px; padding: 9px 11px; background: var(--bg-soft);
+}
+.lab-trace-card.cur { box-shadow: 0 0 0 1px var(--accent) inset; }
+.lab-trace-card.thought { border-left-color: var(--accent-2); }
+.lab-trace-card.action { border-left-color: var(--accent); }
+.lab-trace-card.observation { border-left-color: var(--ok); }
+.lab-trace-card.finish { border-left-color: var(--warn); }
+.lab-trace-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.lab-trace-icon { flex: none; }
+.lab-trace-kind {
+  flex: none; font-size: 11.5px; padding: 1px 7px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--fg-dim); background: var(--panel-2);
+}
+.lab-trace-desc { font-size: 13.5px; color: var(--fg); }
+.lab-trace-text {
+  margin-top: 6px; padding: 8px; border-radius: 6px; background: var(--code-bg);
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; color: var(--fg-dim);
+}
+.lab-trace-end { text-align: center; font-size: 12px; color: var(--fg-faint); padding: 4px 0; }
+
+/* 3) protolab：角色卡片 + 协议连线 */
+.lab-parties { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.lab-party {
+  flex: 1 1 150px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+  background: var(--panel-2); text-align: center;
+}
+.lab-party-name { font-size: 13.5px; font-weight: 600; color: var(--fg); }
+.lab-party-role { font-size: 12px; color: var(--fg-faint); margin-top: 3px; }
+.lab-links { display: flex; flex-direction: column; gap: 6px; }
+.lab-link {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline;
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px;
+  background: var(--bg-soft); opacity: 0.42; transition: opacity .18s;
+}
+.lab-link.on { opacity: 1; border-color: var(--accent); }
+.lab-link-ends { font-size: 13px; color: var(--fg); }
+.lab-link-proto {
+  font-family: var(--mono); font-size: 11.5px; padding: 1px 7px; border-radius: 999px;
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--accent);
+}
+.lab-link-desc { font-size: 12.5px; color: var(--fg-faint); }

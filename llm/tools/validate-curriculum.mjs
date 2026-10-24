@@ -29,7 +29,9 @@ const isArr = (v) => Array.isArray(v);
 
 const CODE_LANGS = new Set(["c", "cpp", "python", "java", "js", "asm", "sql", "bash", "text"]);
 const BLOCK_TYPES = new Set(["concept", "steps", "analogy", "code", "pitfall", "calc", "interactive", "lab"]);
-const LABS = new Set(["pathlab", "schedlab", "cpulab", "pagelab", "arbitlab", "datalab", "tokenlab", "attnlab", "samplab"]);
+const LABS = new Set(["pathlab", "schedlab", "cpulab", "pagelab", "arbitlab", "datalab", "tokenlab", "attnlab", "samplab", "ragsteps", "agenttrace", "protolab"]);
+const RAG_STAGES = new Set(["chunk", "embed", "retrieve", "prompt"]);
+const TRACE_KINDS = new Set(["thought", "action", "observation", "finish"]);
 const QUIZ_TYPES = new Set(["single", "multi", "fill", "order"]);
 
 /** 中文可用字数（粗略）：不算标点与空白，用于判断解释是否敷衍 */
@@ -203,6 +205,76 @@ function checkInteractive(file, where, blk, courseId) {
                   err(file, where, `samplab.steps[${i}].${key} 必须是数字`);
               }
             });
+        }
+      }
+      if (blk.lab === "ragsteps") {
+        if (!isArr(c.docs) || c.docs.length < 1) err(file, where, "ragsteps.config.docs 至少 1 篇文档");
+        else
+          c.docs.forEach((d, i) => {
+            if (!isObj(d) || !isNonEmptyStr(d.id) || !isNonEmptyStr(d.text))
+              err(file, where, `ragsteps.docs[${i}] 需要 {id: 非空字符串, text: 非空字符串}`);
+          });
+        if (c.chunkSize !== undefined && (!Number.isInteger(c.chunkSize) || c.chunkSize < 10))
+          err(file, where, "ragsteps.config.chunkSize 必须是不小于 10 的整数");
+        if (c.qemb !== undefined && (!isArr(c.qemb) || c.qemb.length < 2))
+          err(file, where, "ragsteps.config.qemb 必须是长度 >= 2 的数字数组");
+        if (c.emb !== undefined) {
+          if (!isObj(c.emb)) err(file, where, "ragsteps.config.emb 必须是 {docId: [数字]} 对象");
+          else
+            Object.keys(c.emb).forEach((k) => {
+              const v = c.emb[k];
+              if (!isArr(v) || v.length < 2 || v.some((x) => typeof x !== "number" || !Number.isFinite(x)))
+                err(file, where, `ragsteps.emb.${k} 必须是长度 >= 2 的数字数组`);
+            });
+        }
+        if (!isArr(c.steps) || c.steps.length < 3) err(file, where, "ragsteps.config.steps 至少 3 步");
+        else {
+          const seen = new Set();
+          c.steps.forEach((s, i) => {
+            if (!isObj(s) || !isNonEmptyStr(s.desc)) err(file, where, `ragsteps.steps[${i}] 需要 {desc, stage, data, note}`);
+            if (!RAG_STAGES.has(s.stage)) err(file, where, `ragsteps.steps[${i}].stage 非法: ${s.stage}（可选 ${[...RAG_STAGES].join("/")}）`);
+            else seen.add(s.stage);
+          });
+          for (const st of RAG_STAGES) if (!seen.has(st)) warn(file, where, `ragsteps 缺 ${st} 阶段的步骤，四步流水线建议每步都讲到`);
+        }
+      }
+      if (blk.lab === "agenttrace") {
+        if (!isNonEmptyStr(c.task)) err(file, where, "agenttrace.config.task 必须是非空字符串");
+        if (!isArr(c.steps) || c.steps.length < 3) err(file, where, "agenttrace.config.steps 至少 3 步（思考→行动→观察 才算一个循环）");
+        else {
+          const kinds = new Set();
+          c.steps.forEach((s, i) => {
+            if (!isObj(s) || !isNonEmptyStr(s.desc)) err(file, where, `agenttrace.steps[${i}] 需要 {desc, kind, text, note}`);
+            if (!TRACE_KINDS.has(s.kind)) err(file, where, `agenttrace.steps[${i}].kind 非法: ${s.kind}（可选 ${[...TRACE_KINDS].join("/")}）`);
+            else kinds.add(s.kind);
+            if (!isNonEmptyStr(s.text)) err(file, where, `agenttrace.steps[${i}].text 必须是非空字符串（轨迹要让学习者看到真实内容）`);
+          });
+          if (!kinds.has("thought")) err(file, where, 'agenttrace 至少要有一个 kind="thought" 的步骤');
+          if (!kinds.has("action")) err(file, where, 'agenttrace 至少要有一个 kind="action" 的步骤');
+          if (!kinds.has("observation")) warn(file, where, "agenttrace 没有 observation 步骤，看不到行动的结果");
+          if (!kinds.has("finish")) warn(file, where, "agenttrace 没有 finish 步骤，读者不知道任务是否收敛");
+        }
+      }
+      if (blk.lab === "protoplab") {
+        if (!isArr(c.parties) || c.parties.length < 2) err(file, where, "protoplab.config.parties 至少 2 个角色");
+        else {
+          c.parties.forEach((p, i) => {
+            if (!isObj(p) || !isNonEmptyStr(p.name) || !isNonEmptyStr(p.role))
+              err(file, where, `protoplab.parties[${i}] 需要 {name: 非空字符串, role: 非空字符串}`);
+          });
+          const names = new Set(c.parties.map((p) => (isObj(p) ? p.name : null)));
+          if (!isArr(c.links) || c.links.length < 1) err(file, where, "protoplab.config.links 至少 1 条连线");
+          else
+            c.links.forEach((l, i) => {
+              if (!isObj(l) || !isNonEmptyStr(l.from) || !isNonEmptyStr(l.to) || !isNonEmptyStr(l.proto))
+                err(file, where, `protoplab.links[${i}] 需要 {from, to, proto: 非空字符串, desc}`);
+              else {
+                if (!names.has(l.from)) err(file, where, `protoplab.links[${i}].from="${l.from}" 不在 parties 里`);
+                if (!names.has(l.to)) err(file, where, `protoplab.links[${i}].to="${l.to}" 不在 parties 里`);
+              }
+            });
+          if (!isArr(c.steps) || c.steps.length < 1) err(file, where, "protoplab.config.steps 至少 1 步");
+          else c.steps.forEach((s, i) => { if (!isObj(s) || !isNonEmptyStr(s.desc)) err(file, where, `protoplab.steps[${i}] 需要 {desc, note}`); });
         }
       }
       if (c.tasks !== undefined) {
