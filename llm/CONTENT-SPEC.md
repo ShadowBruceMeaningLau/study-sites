@@ -69,7 +69,7 @@ need: "建议先学「Python 编程基础」「机器学习与深度学习基础
 | `samplab` | `{ prompt:"可选的一句话提示", logits:[{token:"巴黎",logit:3.0},{token:"里昂",logit:1.5}], temperature:1, topK:0, topP:1, seed:20261024, steps:[{desc, temperature?, topK?, topP?, note}] }`——`logits` 至少 2 个候选词；`topK:0` 表示不限、`topP:1` 表示不截断；给了 `steps` 就能"上个场景 / 下个场景 / 自动播放"逐步演示；页面上的三个滑杆可以实时改温度、top-k、top-p，并显示"剪掉 / 保留 / 归一化后概率"与可复现的抽样结果（同一种子必然抽到同一个词） |
 | `ragsteps` | `{ query:"查询", docs:[{id, text}], chunkSize:120, qemb:[..]?（可选，问题向量）, emb:{docId:[..]}, steps:[{desc, stage:"chunk","embed","retrieve","prompt", data, note}] }`——渲染器会**真算**按句切分与余弦排序；`qemb` 给了就展示相似度排名，没给则只讲流程；steps 至少 3 步，四个 stage 建议都覆盖（缺了会告警） |
 | `agenttrace` | `{ task:"任务描述", steps:[{desc, kind:"thought","action","observation","finish", text, note}] }`——ReAct 轨迹回放（思考→行动→观察循环）；steps 至少 3 步，必须含 thought 与 action 各一步，没有 observation/finish 会告警 |
-| `protoplab` | `{ scenario:"场景描述", parties:[{name, role}], links:[{from, to, proto, desc}], steps:[{desc, note}] }`——角色卡片 + 协议连线图；`links.from/to` 必须是 `parties` 里出现过的 name（validator 会查），每走一步点亮一条连线 |
+| `protolab` | `{ scenario:"场景描述", parties:[{name, role}], links:[{from, to, proto, desc}], steps:[{desc, note}] }`——角色卡片 + 协议连线图；`links.from/to` 必须是 `parties` 里出现过的 name（validator 会查），每走一步点亮一条连线 |
 
 沿用 cs 的 `datalab`（通用单步执行器）也可用，但 **LLM 课优先用上面 LLM 专有实验**。
 全部 config 驱动、数据文件禁函数、数值全部纯浏览器可算（**不得依赖运行中的模型或联网**）。
