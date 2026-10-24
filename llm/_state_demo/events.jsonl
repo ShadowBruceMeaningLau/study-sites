@@ -88,4 +88,58 @@
 {"ts": 1.0, "kind": "broken{"ts": 1792848049.2077134, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
 {"ts": 1792848049.2081983, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
 {"ts": 1792848049.208632, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848096.2997644, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848096.3005915, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848096.3015268, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848104.6844287, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848104.6848562, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848104.6854293, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848201.2292092, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848201.2295585, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848201.2298157, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848227.9525776, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848227.9529881, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848227.9533029, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848289.1519167, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848289.1521966, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848289.1524653, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848523.7862713, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848523.7868118, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848523.787083, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848647.189763, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848647.190109, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848647.1903803, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848708.0181222, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848708.0185943, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848708.0190253, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848788.4221225, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848788.4225602, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848788.422969, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848799.7011364, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848799.7014768, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848799.7017236, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848952.8699725, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848952.8704412, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848952.8707252, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792848979.5731149, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792848979.573562, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792848979.5738745, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792849060.862825, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792849060.8633962, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792849060.863807, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792849074.261385, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792849074.261849, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792849074.262212, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792849090.8598123, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792849090.8603396, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792849090.8607678, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792849155.2570574, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792849155.2573833, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792849155.2576866, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792849232.6878545, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792849232.6883721, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792849232.6887286, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792849233.2541184, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792849233.2545643, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792849233.2549415, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
 {"ts": 1.0, "kind": "broken

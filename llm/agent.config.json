@@ -1,0 +1,11 @@
+{
+  "workspace": ".",
+  "allowed_cmds": [
+    "dir",
+    "type",
+    "python"
+  ],
+  "model_endpoint": "http://127.0.0.1:11434",
+  "max_turns": 8,
+  "max_tokens": 20000
+}
