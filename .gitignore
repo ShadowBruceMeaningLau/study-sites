@@ -1,0 +1,37 @@
+# 工具产物与临时文件（都是可再生的，不进版本库）
+#   .edge-profile/  无头 Edge 的临时用户目录（每次跑 verify-browser.ps1 自动重建）
+#   tools/_dom/     无头浏览器导出的 DOM 快照（由 verify-browser.ps1 生成、verify-dom.mjs 消费）
+#   tools/fixture.html  由 tools/make-fixture.mjs 从 index.html 生成
+#   .progress/      本地学习进度的落盘目录（site 的 /api/progress 写到这里）
+#   tools/logs/      托盘启动器重定向出来的服务日志（超 1 MB 自动轮转成 .log.1）
+#
+# ★ 路径必须写成 **/ 开头：git 里含中间斜杠的 pattern 是**相对 .gitignore 自身目录**锚定的，
+#   写 "tools/_dom/" 只会匹配 <根>/tools/_dom/（该目录并不存在），
+#   而真实的产物在 cs|math|physics/tools/_dom/ ——那样会一次性把约 100 MB 快照提交进库。
+#   这条是独立审计用真实 git 复现出来的，不要再改回去。
+.edge-profile/
+**/.edge-profile/
+**/tools/_dom/
+**/tools/fixture.html
+**/tools/fixture-data.js
+.progress/
+**/.progress/
+**/tools/logs/
+tmp-*.mjs
+**/tmp-*.mjs
+
+# 编辑器与系统
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# 临时/备份
+*.bak
+*.tmp
+_dbg-*.mjs
+_*.bak
+
+# 旧打包文件（OPTIMIZATION-REVIEW.md §4 建议补上）
+*.rar
+*.zip

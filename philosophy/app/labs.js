@@ -1,0 +1,840 @@
+/* ==========================================================================
+   labs.js —— 交互式实验组件（零依赖，全部在前端实时计算）
+   steplab / tablelab 为哲学站主力；pathlab / schedlab / cpulab / pagelab / arbitlab / datalab 保留兼容
+   每个渲染函数签名：render(host, config, ctx)  ctx = { onInteract }
+   ========================================================================== */
+(function (global) {
+  "use strict";
+
+  var Colors = ["#5aa9ff", "#7d7bff", "#45d19a", "#ffc55c", "#ff9a76", "#7ad3ff", "#c58bff", "#ff7ab6"];
+
+  function el(tag, cls, html) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (html != null) node.innerHTML = html;
+    return node;
+  }
+  function btn(label, cls) {
+    var b = document.createElement("button");
+    b.className = "btn sm " + (cls || "");
+    b.textContent = label;
+    var _c = b.addEventListener.bind(b);
+    void _c;
+    return b;
+  }
+  function on(node, ev, fn) {
+    node.addEventListener(ev, fn);
+    return node;
+  }
+  function num(v) { return Number(v); }
+  function fmt(x) { return Number.isInteger(x) ? String(x) : Number(x).toFixed(2); }
+
+  /* ====================================================== 1. pathlab 寻路 */
+  function renderPathlab(host, cfg, ctx) {
+    var grid = cfg.grid || [];
+    var h = grid.length, w = h ? grid[0].length : 0;
+    var start = cfg.start || [0, 0], end = cfg.end || [h - 1, w - 1];
+    var DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    var passable = function (r, c) { return r >= 0 && r < h && c >= 0 && c < w && grid[r][c] !== 0; };
+
+    function bfs() {
+      var dist = {}, prev = {}, order = [];
+      var q = [start];
+      dist[start.join(",")] = 0;
+      while (q.length) {
+        var cur = q.shift();
+        order.push(cur);
+        if (cur[0] === end[0] && cur[1] === end[1]) break;
+        for (var i = 0; i < 4; i++) {
+          var nr = cur[0] + DIRS[i][0], nc = cur[1] + DIRS[i][1], k = nr + "," + nc;
+          if (passable(nr, nc) && !(k in dist)) { dist[k] = dist[cur.join(",")] + 1; prev[k] = cur; q.push([nr, nc]); }
+        }
+      }
+      return { dist: dist, prev: prev, order: order };
+    }
+
+    function dijkstra() {
+      var dist = {}, prev = {}, order = [], done = {};
+      dist[start.join(",")] = 0;
+      var pq = [[0, start]];
+      while (pq.length) {
+        pq.sort(function (a, b) { return a[0] - b[0]; });
+        var top = pq.shift(), d = top[0], cur = top[1], ck = cur.join(",");
+        if (done[ck]) continue;
+        done[ck] = true;
+        order.push(cur);
+        if (cur[0] === end[0] && cur[1] === end[1]) break;
+        for (var i = 0; i < 4; i++) {
+          var nr = cur[0] + DIRS[i][0], nc = cur[1] + DIRS[i][1], k = nr + "," + nc;
+          if (!passable(nr, nc)) continue;
+          var nd = d + grid[nr][nc];
+          if (!(k in dist) || nd < dist[k]) { dist[k] = nd; prev[k] = cur; pq.push([nd, [nr, nc]]); }
+        }
+      }
+      return { dist: dist, prev: prev, order: order };
+    }
+
+    var algo = cfg.algo === "dijkstra" ? "dijkstra" : "bfs";
+    var result = algo === "dijkstra" ? dijkstra() : bfs();
+    var path = [], k = end.join(",");
+    if (k in result.dist) {
+      var cur = end;
+      while (cur) { path.unshift(cur); cur = result.prev[cur.join(",")]; }
+    }
+
+    var bar = el("div", "lab-bar");
+    var cells = [];
+    var gridBox = el("div", "grid-lab");
+    gridBox.style.gridTemplateColumns = "repeat(" + w + ", 34px)";
+    for (var r = 0; r < h; r++) {
+      for (var c = 0; c < w; c++) {
+        var cell = el("div", "cell");
+        var isS = r === start[0] && c === start[1];
+        var isE = r === end[0] && c === end[1];
+        if (grid[r][c] === 0) { cell.className = "cell wall"; cell.textContent = ""; }
+        else {
+          cell.textContent = isS ? "S" : isE ? "E" : String(grid[r][c]);
+          if (isS) cell.className = "cell start";
+          if (isE) cell.className = "cell end";
+        }
+        cell.dataset.key = r + "," + c;
+        gridBox.appendChild(cell);
+        cells.push(cell);
+      }
+    }
+    var cellAt = {};
+    cells.forEach(function (c2) { cellAt[c2.dataset.key] = c2; });
+
+    var info = el("div", "lab-stat");
+    var stepBox = el("div", "lab-note", "");
+
+    var algoBox = el("div", "lab-bar");
+    ["bfs", "dijkstra"].forEach(function (a) {
+      var b = btn(a === "bfs" ? "BFS（无权最短）" : "Dijkstra（带权最短路）", a === algo ? "ok" : "ghost");
+      on(b, "click", function () { ctx.rerender({ lab: "pathlab", title: "", config: Object.assign({}, cfg, { algo: a }) }); });
+      algoBox.appendChild(b);
+    });
+
+    var t = 0, timer = null;
+    function paint(step) {
+      cells.forEach(function (c2) { c2.classList.remove("visited", "path", "cur"); });
+      for (var i = 0; i < Math.min(step, result.order.length); i++) {
+        var key = result.order[i].join(",");
+        if (cellAt[key]) cellAt[key].classList.add("visited");
+      }
+      if (step >= result.order.length) {
+        path.forEach(function (p) { cellAt[p.join(",")].classList.add("path"); });
+        var cost = 0;
+        for (var j = 1; j < path.length; j++) cost += grid[path[j][0]][path[j][1]];
+        info.textContent = path.length
+          ? "路径长度 " + path.length + " 格 ｜ 累计代价 " + cost + " ｜ 扩展节点 " + result.order.length + " 个"
+          : "不可达：" + (algo === "bfs" ? "BFS" : "Dijkstra") + " 扩展了 " + result.order.length + " 个节点仍未到达终点";
+      } else if (step > 0) {
+        cellAt[result.order[step - 1].join(",")].classList.add("cur");
+        info.textContent = "已扩展 " + step + " 个节点 ｜ 当前：" + result.order[step - 1].join(",");
+      } else info.textContent = "点击「单步」或「播放」开始";
+      stepBox.textContent = "格子里的数字 = 进入该格的代价（1 最小）；BFS 只看格数，Dijkstra 看代价总和 —— 对比同一张图上的路径差异。";
+    }
+
+    var bStep = btn("▶ 单步"), bPlay = btn("⏵ 播放"), bReset = btn("↺ 重置", "ghost");
+    on(bStep, "click", function () { if (t < result.order.length) { t++; paint(t); } ctx.onInteract(); });
+    on(bReset, "click", function () { t = 0; if (timer) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 播放"; } paint(0); });
+    on(bPlay, "click", function () {
+      if (timer) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 播放"; return; }
+      bPlay.textContent = "⏸ 暂停";
+      timer = setInterval(function () {
+        if (t >= result.order.length) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 播放"; return; }
+        t++; paint(t);
+      }, 180);
+      ctx.onInteract();
+    });
+
+    bar.appendChild(bStep); bar.appendChild(bPlay); bar.appendChild(bReset);
+    bar.appendChild(el("div", "spacer"));
+    bar.appendChild(info);
+
+    host.appendChild(algoBox);
+    host.appendChild(bar);
+    var body = el("div", "lab-panel");
+    body.style.overflowX = "auto";
+    body.appendChild(gridBox);
+    host.appendChild(body);
+    host.appendChild(stepBox);
+    paint(0);
+  }
+
+  /* ============================================ 2. schedlab 调度 / Gantt */
+  function buildTimeline(procs, algo, quantum) {
+    var tl = [];
+    var ps = procs.map(function (p, i) {
+      return { name: p.name, arrival: num(p.arrival), burst: num(p.burst), left: num(p.burst), prio: num(p.prio == null ? i + 1 : p.prio), start: -1, end: -1, id: i };
+    });
+    var t = 0, done = 0, n = ps.length, guard = 0;
+    var ready = [];
+    var pushArrivals = function (upto) { ps.forEach(function (p) { if (p.arrival <= upto && p.left > 0 && ready.indexOf(p) < 0 && !p.inQ) { ready.push(p); p.inQ = true; } }); };
+    ps.forEach(function (p) { p.inQ = false; });
+
+    if (algo === "RR") {
+      var q = [], qFlag = {};
+      var arrivalOrder = ps.slice().sort(function (a, b) { return a.arrival - b.arrival || a.id - b.id; });
+      var ai = 0;
+      var last = null;
+      while (done < n && guard++ < 5000) {
+        while (ai < n && arrivalOrder[ai].arrival <= t) { q.push(arrivalOrder[ai]); qFlag[arrivalOrder[ai].id] = true; ai++; }
+        if (!q.length) {
+          if (last && last.end === t) { last.idle = true; }
+          tl.push({ name: "空闲", from: t, to: arrivalOrder[ai].arrival });
+          t = arrivalOrder[ai].arrival;
+          continue;
+        }
+        var cur = q.shift();
+        qFlag[cur.id] = false;
+        if (cur.start < 0) cur.start = t;
+        var run = Math.min(quantum, cur.left);
+        tl.push({ name: cur.name, from: t, to: t + run, slice: true });
+        t += run; cur.left -= run;
+        if (cur.left === 0) { cur.end = t; done++; }
+        while (ai < n && arrivalOrder[ai].arrival <= t) { q.push(arrivalOrder[ai]); qFlag[arrivalOrder[ai].id] = true; ai++; }
+        if (cur.left > 0) q.push(cur);
+      }
+      return { tl: tl, ps: ps };
+    }
+
+    var current = null;
+    while (done < n && guard++ < 5000) {
+      pushArrivals(t);
+      // 过滤已完成的
+      var cands = ps.filter(function (p) { return p.arrival <= t && p.left > 0 && !p.finished; });
+      if (!cands.length) {
+        var nxt = ps.filter(function (p) { return p.left > 0; }).sort(function (a, b) { return a.arrival - b.arrival; })[0];
+        tl.push({ name: "空闲", from: t, to: nxt.arrival });
+        t = nxt.arrival;
+        current = null;
+        continue;
+      }
+      var pick;
+      if (algo === "FCFS") pick = cands.slice().sort(function (a, b) { return a.arrival - b.arrival || a.id - b.id; })[0];
+      else if (algo === "SJF") pick = cands.slice().sort(function (a, b) { return a.burst - b.burst || a.arrival - b.arrival || a.id - b.id; })[0];
+      else if (algo === "SRTF") pick = cands.slice().sort(function (a, b) { return a.left - b.left || a.arrival - b.arrival || a.id - b.id; })[0];
+      else if (algo === "优先级") pick = cands.slice().sort(function (a, b) { return a.prio - b.prio || a.arrival - b.arrival || a.id - b.id; })[0];
+      else pick = cands[0];
+
+      if (pick !== current) {
+        if (current && current.left > 0) tl.push({ name: current.name, from: current._t0, to: t });
+        else if (current && current.left === 0) { /* 已结束 */ }
+        current = pick;
+        current._t0 = t;
+        if (current.start < 0) current.start = t;
+      }
+      // 推进到下一个事件点
+      var nextArrival = ps.filter(function (p) { return p.arrival > t && p.left > 0; })
+        .sort(function (a, b) { return a.arrival - b.arrival; })[0];
+      var canRun = (algo === "FCFS" || algo === "SJF" || algo === "优先级");
+      var step = canRun ? current.left : 1;
+      if (!canRun && nextArrival) step = Math.min(step, nextArrival.arrival - t);
+      // SRTF 逐单位推进即可
+      current.left -= step;
+      t += step;
+      if (current.left === 0) {
+        current.end = t;
+        current.finished = true;
+        done++;
+        tl.push({ name: current.name, from: current._t0, to: t });
+        current = null;
+      }
+    }
+    void ready;
+    return { tl: tl, ps: ps };
+  }
+
+  function metrics(ps, tl) {
+    var total = 0, wait = 0, n = ps.length;
+    var finish = {}, firstStart = {};
+    tl.forEach(function (s) {
+      if (s.name === "空闲") return;
+      finish[s.name] = Math.max(finish[s.name] || 0, s.to);
+      if (firstStart[s.name] == null) firstStart[s.name] = s.from;
+    });
+    ps.forEach(function (p) {
+      var f = finish[p.name];
+      total += f - p.arrival;
+      wait += f - p.arrival - p.burst;
+    });
+    return { avgTurn: total / n, avgWait: wait / n, finish: finish, firstStart: firstStart };
+  }
+
+  function renderSchedlab(host, cfg, ctx) {
+    var procs = cfg.procs || [];
+    var quantum = num(cfg.quantum || 2);
+    var algos = cfg.algos && cfg.algos.length ? cfg.algos : ["FCFS", "SJF", "RR"];
+    var pick = algos[0];
+
+    var bar = el("div", "lab-bar");
+    var holder = el("div");
+    var note = el("div", "lab-note", "带权周转时间 = 周转时间 / 服务时间；时间片轮转的时间片 q = " + quantum + "。");
+
+    function draw() {
+      holder.innerHTML = "";
+      var built = buildTimeline(procs, pick, quantum);
+      var m = metrics(built.ps, built.tl);
+      var total = built.tl.length ? built.tl[built.tl.length - 1].to : 0;
+
+      var wrap = el("div", "gantt");
+      var axis = el("div", "gantt-axis");
+      for (var i = 0; i < total; i++) axis.appendChild(el("span", null, String(i)));
+      wrap.appendChild(axis);
+
+      var row = el("div", "gantt-row");
+      row.appendChild(el("div", "nm", "CPU"));
+      var track = el("div", "gantt-track");
+      built.tl.forEach(function (s) {
+        var seg = el("div", "gantt-cell", s.name === "空闲" ? "" : s.name);
+        seg.style.flex = String(s.to - s.from);
+        var idx = procs.findIndex(function (p) { return p.name === s.name; });
+        seg.style.background = s.name === "空闲" ? "repeating-linear-gradient(45deg,#2a3140,#2a3140 4px,#232a36 4px,#232a36 8px)" : Colors[(idx < 0 ? 0 : idx) % Colors.length];
+        seg.title = s.name + "：" + s.from + " → " + s.to;
+        track.appendChild(seg);
+      });
+      row.appendChild(track);
+      wrap.appendChild(row);
+
+      // 每个进程一行甘特（标出运行区间）
+      built.ps.forEach(function (p, pi) {
+        var r2 = el("div", "gantt-row");
+        r2.appendChild(el("div", "nm", p.name));
+        var tr2 = el("div", "gantt-track");
+        for (var tt = 0; tt < total; tt++) {
+          var busy = built.tl.some(function (s) { return s.name === p.name && s.from <= tt && s.to > tt; });
+          var cell = el("div", "gantt-cell");
+          cell.style.flex = "1";
+          cell.style.background = busy ? Colors[pi % Colors.length] : "transparent";
+          tr2.appendChild(cell);
+        }
+        r2.appendChild(tr2);
+        wrap.appendChild(r2);
+      });
+      holder.appendChild(wrap);
+
+      var tbl = el("table", "mini");
+      tbl.innerHTML = "<tr><th>进程</th><th>到达</th><th>服务</th>" + (pick === "优先级" ? "<th>优先级</th>" : "") + "<th>完成</th><th>周转</th><th>带权周转</th></tr>";
+      var tt2 = 0, tw2 = 0;
+      built.ps.forEach(function (p) {
+        var f = m.finish[p.name];
+        var turn = f - p.arrival, wturn = turn / p.burst;
+        tt2 += turn; tw2 += wturn;
+        var tr3 = el("tr");
+        tr3.innerHTML = "<td>" + p.name + "</td><td>" + p.arrival + "</td><td>" + p.burst + "</td>" +
+          (pick === "优先级" ? "<td>" + p.prio + "</td>" : "") +
+          "<td>" + f + "</td><td>" + turn + "</td><td>" + fmt(wturn) + "</td>";
+        tbl.appendChild(tr3);
+      });
+      holder.appendChild(el("div", "lab-bar")).appendChild(el("div", "lab-stat",
+        "平均周转时间 " + fmt(m.avgTurn) + " ｜ 平均带权周转时间 " + fmt(tt2 / built.ps.length) + " ｜ 平均等待时间 " + fmt(m.avgWait)));
+      holder.appendChild(tbl);
+    }
+
+    algos.forEach(function (a) {
+      var b = btn(a, a === pick ? "ok" : "ghost");
+      on(b, "click", function () {
+        pick = a;
+        Array.prototype.forEach.call(bar.querySelectorAll("button"), function (x) { x.className = "btn sm ghost"; });
+        b.className = "btn sm ok";
+        draw();
+        ctx.onInteract();
+      });
+      bar.appendChild(b);
+    });
+
+    host.appendChild(bar);
+    host.appendChild(holder);
+    host.appendChild(note);
+    draw();
+  }
+
+  /* ===================================================== 3. cpulab 指令执行 */
+  function renderCpulab(host, cfg, ctx) {
+    var regs = Object.assign({}, cfg.regs || {});
+    var mem = Object.assign({}, cfg.mem || {});
+    var prog = (cfg.program || []).map(function (p) {
+      var asm = String(p.asm || "");
+      var codePart = asm.split("/")[0].trim();
+      return { asm: asm, code: codePart, note: p.note || "", raw: p };
+    });
+
+    function parseOperand(tok) {
+      tok = String(tok).trim().replace(/,$/, "");
+      if (/^\[.*\]$/.test(tok)) {
+        var inner = tok.slice(1, -1).trim();
+        if (/^0x[0-9a-f]+$/i.test(inner)) return { kind: "mem", addr: parseInt(inner, 16), label: tok };
+        if (/^\d+$/.test(inner)) return { kind: "mem", addr: parseInt(inner, 10), label: tok };
+        return { kind: "memreg", reg: inner, label: tok };
+      }
+      if (/^R\d+$/i.test(tok)) return { kind: "reg", reg: tok.toUpperCase(), label: tok };
+      if (/^0x[0-9a-f]+$/i.test(tok)) return { kind: "imm", value: parseInt(tok, 16), label: tok };
+      if (/^-?\d+$/.test(tok)) return { kind: "imm", value: parseInt(tok, 10), label: tok };
+      if (tok === "") return { kind: "none", label: "" };
+      return { kind: "label", label: tok };
+    }
+    function read(op) {
+      if (!op) return 0;
+      if (op.kind === "reg") return num(regs[op.reg] || 0);
+      if (op.kind === "imm") return op.value;
+      if (op.kind === "mem") return num(mem["0x" + op.addr.toString(16)] != null ? mem["0x" + op.addr.toString(16)] : 0);
+      if (op.kind === "memreg") return num(mem["0x" + num(regs[op.reg] || 0).toString(16)] || 0);
+      return 0;
+    }
+    function addrKey(op) {
+      if (op.kind === "mem") return "0x" + op.addr.toString(16);
+      if (op.kind === "memreg") return "0x" + num(regs[op.reg] || 0).toString(16);
+      return null;
+    }
+
+    function stepOnce(pcState) {
+      if (pcState.pc >= prog.length) return { done: true, desc: "程序结束（PC 越界）" };
+      var ins = prog[pcState.pc];
+      var parts = ins.code.split(/\s+/);
+      var op = String(parts[0] || "").toUpperCase();
+      var operands = ins.code.split(/\s+/).slice(1).join(" ").split(",").map(parseOperand);
+      var desc = ins.code;
+      var pcNext = pcState.pc + 1;
+
+      if (op === "LOAD") { regs[operands[0].reg] = read(operands[1]); desc += "  →  " + operands[0].reg + " = " + regs[operands[0].reg]; }
+      else if (op === "STORE") { var k = addrKey(operands[1]); if (k) mem[k] = read(operands[0]); desc += "  →  " + k + " = " + read(operands[0]); }
+      else if (op === "MOV") { regs[operands[0].reg] = read(operands[1]); desc += "  →  " + operands[0].reg + " = " + regs[operands[0].reg]; }
+      else if (op === "ADD") { regs[operands[0].reg] = num(regs[operands[0].reg] || 0) + read(operands[1]); desc += "  →  " + operands[0].reg + " = " + regs[operands[0].reg]; }
+      else if (op === "SUB") { regs[operands[0].reg] = num(regs[operands[0].reg] || 0) - read(operands[1]); desc += "  →  " + operands[0].reg + " = " + regs[operands[0].reg]; }
+      else if (op === "INC") { regs[operands[0].reg] = num(regs[operands[0].reg] || 0) + 1; desc += "  →  " + operands[0].reg + " = " + regs[operands[0].reg]; }
+      else if (op === "DEC") { regs[operands[0].reg] = num(regs[operands[0].reg] || 0) - 1; desc += "  →  " + operands[0].reg + " = " + regs[operands[0].reg]; }
+      else if (op === "CMP") { pcState.lastCmp = read(operands[0]) - read(operands[1]); desc += "  →  标志 = " + (pcState.lastCmp === 0 ? "ZF(=)" : pcState.lastCmp < 0 ? "SF(<)" : ">0"); }
+      else if (op === "JMP") { pcNext = prog.findIndex(function (p) { return p.code.split(/[\s,]+/).indexOf(operands[0].label) >= 0; }); if (pcNext < 0) pcNext = pcState.pc + 1; desc += "  →  PC = " + pcNext; }
+      else if (op === "JZ" || op === "JE") { var jk = prog.findIndex(function (p) { return p.code.split(/[\s,]+/).indexOf(operands[0].label) >= 0; }); if (pcState.lastCmp === 0 && jk >= 0) pcNext = jk; desc += "  →  " + (pcState.lastCmp === 0 ? "跳转到 " + pcNext : "不跳转"); }
+      else if (op === "JNZ" || op === "JNE") { var jk2 = prog.findIndex(function (p) { return p.code.split(/[\s,]+/).indexOf(operands[0].label) >= 0; }); if (pcState.lastCmp !== 0 && jk2 >= 0) pcNext = jk2; desc += "  →  " + (pcState.lastCmp !== 0 ? "跳转到 " + pcNext : "不跳转"); }
+      else if (op === "PUSH") { pcState.stack.push(read(operands[0])); desc += "  →  栈顶 = " + pcState.stack[pcState.stack.length - 1]; }
+      else if (op === "POP") { var v = pcState.stack.pop(); if (operands[0] && operands[0].reg) regs[operands[0].reg] = num(v == null ? 0 : v); desc += "  →  " + (operands[0] ? operands[0].reg : "?") + " = " + (v == null ? 0 : v); }
+      else if (op === "CALL") { pcState.stack.push(pcState.pc + 1); var ck = prog.findIndex(function (p) { return p.code.split(/[\s,]+/).indexOf(operands[0].label) >= 0; }); if (ck >= 0) pcNext = ck; desc += "  →  压入返回地址 " + (pcState.pc + 1); }
+      else if (op === "RET") { var ra = pcState.stack.pop(); if (ra != null) pcNext = num(ra); desc += "  →  返回 " + pcNext; }
+      else if (op === "HLT" || op === "NOP") { desc += "  →  停机/空操作"; if (op === "HLT") pcState.halt = true; }
+      else desc += "  →  （演示指令：仅展示语义）";
+
+      pcState.pc = pcNext;
+      if (pcState.halt || pcState.pc >= prog.length) pcState.halt = true;
+      return { done: pcState.halt, desc: desc, insIndex: pcState.pc - 1 };
+    }
+
+    var pcState = { pc: 0, stack: [], lastCmp: null, halt: false };
+    var hist = [];
+    function snapshot(desc) {
+      hist.push({
+        desc: desc,
+        state: Object.assign({ PC: pcState.pc, 栈: pcState.stack.length ? pcState.stack.join(",") : "空" }, regs, mem)
+      });
+    }
+    snapshot("初始状态：PC=0，等待取指");
+    var guard = 0;
+    while (!pcState.halt && guard++ < 60) {
+      var r = stepOnce(pcState);
+      snapshot(r.desc);
+    }
+
+    var idx = 0;
+    var bar = el("div", "lab-bar");
+    var bPrev = btn("‹ 上一步", "ghost"), bNext = btn("下一步 ›"), bPlay = btn("⏵ 自动"), bReset = btn("↺ 重置", "ghost");
+    var stat = el("div", "lab-stat");
+    var body;
+    var codeBox = el("div", "lab-panel");
+    var stateBox = el("div", "lab-panel");
+    var ganttLike = el("div");
+
+    function draw() {
+      var h = hist[Math.min(idx, hist.length - 1)];
+      codeBox.innerHTML = "";
+      var tbl = el("table", "mini");
+      tbl.style.width = "100%";
+      tbl.innerHTML = "<tr><th>#</th><th style='text-align:left'>指令 / 阶段</th></tr>";
+      prog.forEach(function (p, i) {
+        var tr = el("tr");
+        var active = h.state.PC === i;
+        tr.innerHTML = "<td>" + i + "</td><td style='text-align:left" + (active ? ";background:rgba(90,169,255,.18)" : "") + "'>" + (active ? "▶ " : "") + MD.escapeHtml(p.code) + "</td>";
+        tbl.appendChild(tr);
+      });
+      codeBox.appendChild(tbl);
+
+      stateBox.innerHTML = "";
+      var kv = el("div", "kv");
+      Object.keys(h.state).forEach(function (k2) {
+        kv.appendChild(el("div", "item", "<div class='k'>" + k2 + "</div><div class='v'>" + MD.escapeHtml(String(h.state[k2])) + "</div>"));
+      });
+      stateBox.appendChild(el("div", "lab-stat", "第 " + idx + " / " + (hist.length - 1) + " 步"));
+      stateBox.appendChild(kv);
+      var cur = prog[Math.min(Math.max(0, h.state.PC - 1), prog.length - 1)];
+      stat.textContent = h.desc;
+      ganttLike.innerHTML = cur && cur.note ? "<div class='lab-note'>🔍 " + MD.escapeHtml(cur.note) + "</div>" : "";
+    }
+
+    var timer2 = null;
+    on(bNext, "click", function () { if (idx < hist.length - 1) { idx++; draw(); } ctx.onInteract(); });
+    on(bPrev, "click", function () { if (idx > 0) { idx--; draw(); } });
+    on(bReset, "click", function () { idx = 0; if (timer2) { clearInterval(timer2); timer2 = null; bPlay.textContent = "⏵ 自动"; } draw(); });
+    on(bPlay, "click", function () {
+      if (timer2) { clearInterval(timer2); timer2 = null; bPlay.textContent = "⏵ 自动"; return; }
+      bPlay.textContent = "⏸ 暂停";
+      timer2 = setInterval(function () {
+        if (idx >= hist.length - 1) { clearInterval(timer2); timer2 = null; bPlay.textContent = "⏵ 自动"; return; }
+        idx++; draw();
+      }, 700);
+      ctx.onInteract();
+    });
+
+    bar.appendChild(bPrev); bar.appendChild(bNext); bar.appendChild(bPlay); bar.appendChild(bReset);
+    bar.appendChild(el("div", "spacer")); bar.appendChild(stat);
+    host.appendChild(bar);
+    var cols = el("div");
+    cols.style.display = "grid";
+    cols.style.gridTemplateColumns = "minmax(0,1.1fr) minmax(0,1fr)";
+    cols.style.gap = "10px";
+    cols.appendChild(codeBox); cols.appendChild(stateBox);
+    host.appendChild(cols);
+    host.appendChild(ganttLike);
+    if (cfg.legend) host.appendChild(el("div", "lab-note", MD.escapeHtml(cfg.legend)));
+    draw();
+  }
+
+  /* ===================================================== 4. pagelab 页面置换 */
+  function runPage(refs, frames, algo) {
+    var fr = new Array(frames).fill(null);
+    var rows = [], faults = 0, hits = 0;
+    var fifoQ = [], used = {}, counters = {}, clockPtr = 0, refBits = new Array(frames).fill(0), loaded = {};
+    for (var i = 0; i < refs.length; i++) {
+      var page = refs[i];
+      var hit = fr.indexOf(page) >= 0;
+      var victim = null, victimIdx = -1;
+      if (hit) {
+        hits++;
+        used[page] = i;
+        if (algo === "CLOCK") refBits[fr.indexOf(page)] = 1;
+      } else {
+        faults++;
+        if (fr.indexOf(null) >= 0) victimIdx = fr.indexOf(null);
+        else if (algo === "FIFO") { victim = fifoQ.shift(); victimIdx = fr.indexOf(victim); }
+        else if (algo === "LRU") {
+          var lru = Infinity;
+          fr.forEach(function (p, k) { var u = p == null ? -1 : (used[p] == null ? -1 : used[p]); if (u < lru) { lru = u; victimIdx = k; } });
+          victim = fr[victimIdx];
+        } else if (algo === "OPT") {
+          var far = -1;
+          fr.forEach(function (p, k) {
+            var nxt = refs.indexOf(p, i + 1);
+            if (nxt < 0) nxt = Infinity;
+            if (nxt > far) { far = nxt; victimIdx = k; }
+          });
+          victim = fr[victimIdx];
+        } else if (algo === "CLOCK") {
+          var guard = 0;
+          while (guard++ < frames * 3) {
+            if (refBits[clockPtr] === 0) { victimIdx = clockPtr; break; }
+            refBits[clockPtr] = 0;
+            clockPtr = (clockPtr + 1) % frames;
+          }
+          if (victimIdx < 0) victimIdx = clockPtr;
+          victim = fr[victimIdx];
+          clockPtr = (victimIdx + 1) % frames;
+        }
+        if (victim != null) { delete loaded[victim]; var qi = fifoQ.indexOf(victim); if (qi >= 0) fifoQ.splice(qi, 1); used[victim] = -1; }
+        fr[victimIdx] = page;
+        if (algo !== "CLOCK") fifoQ.push(page);
+        refBits[victimIdx] = 1;
+        used[page] = i;             // LRU 必须记录新装入页的最近使用时刻，否则下一次会误淘汰它
+        loaded[page] = true;
+      }
+      rows.push({ ref: page, hit: hit, frames: fr.slice(), victim: victim });
+    }
+    return { rows: rows, faults: faults, hits: hits };
+  }
+
+  function renderPagelab(host, cfg, ctx) {
+    var refs = cfg.refs || [];
+    var frames = num(cfg.frames || 3);
+    var algos = cfg.algos && cfg.algos.length ? cfg.algos : ["FIFO", "LRU"];
+    var res = {};
+    algos.forEach(function (a) { res[a] = runPage(refs, frames, a); });
+
+    var bar = el("div", "lab-bar");
+    var holder = el("div");
+    var summary = el("div", "lab-stat");
+    var cur = algos[0];
+
+    function drawSummary() {
+      summary.innerHTML = algos.map(function (a) {
+        var d = res[a];
+        return "「" + a + "」缺页 " + d.faults + " 次（缺页率 " + ((d.faults / refs.length) * 100).toFixed(1) + "%）";
+      }).join("　｜　");
+    }
+    function draw() {
+      holder.innerHTML = "";
+      var d = res[cur];
+      var tbl = el("table", "mini");
+      var head = "<tr><th>访问页</th>";
+      for (var f = 0; f < frames; f++) head += "<th>页框 " + f + "</th>";
+      head += "<th>结果</th></tr>";
+      tbl.innerHTML = head;
+      d.rows.forEach(function (r) {
+        var tr = el("tr");
+        tr.innerHTML = "<td>" + r.ref + "</td>" + r.frames.map(function (p) {
+          return "<td>" + (p == null ? "–" : p) + "</td>";
+        }).join("") + "<td class='" + (r.hit ? "hit" : "miss") + "'>" + (r.hit ? "命中" : "缺页" + (r.victim != null ? "（淘汰 " + r.victim + "）" : "")) + "</td>";
+        tbl.appendChild(tr);
+      });
+      holder.appendChild(tbl);
+      var kv = el("div", "lab-bar");
+      kv.appendChild(el("div", "lab-stat", "算法 " + cur + "：缺页 " + d.faults + " 次，命中 " + d.hits + " 次，缺页率 " + ((d.faults / refs.length) * 100).toFixed(1) + "%"));
+      holder.appendChild(kv);
+    }
+
+    algos.forEach(function (a) {
+      var b = btn(a, a === cur ? "ok" : "ghost");
+      on(b, "click", function () {
+        cur = a;
+        Array.prototype.forEach.call(bar.querySelectorAll("button"), function (x) { x.className = "btn sm ghost"; });
+        b.className = "btn sm ok";
+        draw(); drawSummary(); ctx.onInteract();
+      });
+      bar.appendChild(b);
+    });
+    host.appendChild(bar);
+    host.appendChild(summary);
+    host.appendChild(holder);
+    if (cfg.legend) host.appendChild(el("div", "lab-note", MD.escapeHtml(cfg.legend)));
+    draw(); drawSummary();
+  }
+
+  /* ====================================================== 5. arbitlab 位模式 */
+  function renderArbitlab(host, cfg, ctx) {
+    var bits = num(cfg.bits || 8);
+    var arr = new Array(bits).fill(0);
+    var modes = cfg.modes && cfg.modes.length ? cfg.modes : ["无符号", "原码", "反码", "补码", "移码"];
+    var bar = el("div", "lab-bar");
+    var bitBox = el("div");
+    var kv = el("div", "kv");
+    var note = el("div", "lab-note", cfg.legend || "点击每一位切换 0/1；下方同步给出该位模式在不同编码下的解释。");
+
+    function valueOf() {
+      var s = arr.join("");
+      return parseInt(s || "0", 2);
+    }
+    function toBits(v) {
+      var s = (v >>> 0).toString(2);
+      return s.slice(-bits).padStart(bits, "0");
+    }
+    function twosValue() {
+      var u = valueOf();
+      var half = Math.pow(2, bits - 1);
+      return u >= half ? u - Math.pow(2, bits) : u;
+    }
+    function render() {
+      bitBox.innerHTML = "";
+      var row = el("div", "bit-row");
+      var idxRow = el("div", "bit-row");
+      arr.forEach(function (b, i) {
+        var btn2 = el("button", "bit" + (b ? " on" : ""), String(b));
+        on(btn2, "click", function () { arr[i] = arr[i] ? 0 : 1; render(); ctx.onInteract(); });
+        row.appendChild(btn2);
+        var ix = el("div", "bit-idx", String(bits - 1 - i));
+        ix.style.width = "32px";
+        idxRow.appendChild(ix);
+      });
+      bitBox.appendChild(row);
+      bitBox.appendChild(idxRow);
+
+      var u = valueOf();
+      var sign = arr[0];
+      var mag = parseInt(arr.slice(1).join("") || "0", 2);
+      var inv = parseInt(arr.slice(1).map(function (x) { return x ? "0" : "1"; }).join("") || "0", 2);
+      var biasKey = "移码（偏置 " + Math.pow(2, bits - 1) + "）";
+      var data = {
+        "二进制": arr.join(""),
+        "十六进制": "0x" + u.toString(16).toUpperCase(),
+        "无符号": String(u),
+        "原码值": (sign ? "-" : "+") + mag,
+        "反码值": sign ? String(-inv) : String(mag),
+        "补码值": String(twosValue()),
+        "位数": bits + " 位，可表示范围（补码）: " + (-Math.pow(2, bits - 1)) + " ~ " + (Math.pow(2, bits - 1) - 1)
+      };
+      data[biasKey] = String(u - Math.pow(2, bits - 1));
+      if (bits === 32) {
+        var exp = parseInt(arr.slice(1, 9).join(""), 2);
+        var frac = parseInt(arr.slice(9).join(""), 2) / Math.pow(2, 23);
+        var val = exp === 0 ? Math.pow(-1, sign) * frac * Math.pow(2, -126)
+          : exp === 255 ? (frac === 0 ? (sign ? "-∞" : "+∞") : "NaN")
+            : Math.pow(-1, sign) * (1 + frac) * Math.pow(2, exp - 127);
+        data["IEEE754 单精度"] = "符号 " + sign + " / 阶码 " + exp + " / 尾数 " + arr.slice(9).join("") + " → " + (typeof val === "number" ? val.toExponential(6) : val);
+      }
+      kv.innerHTML = "";
+      var modeWanted = function (prefix) {
+        return modes.some(function (m) { return m.indexOf(prefix) === 0; });
+      };
+      var show = Object.keys(data).filter(function (k) {
+        if (k === "原码值" || k === "反码值" || k === "补码值" || k === biasKey) {
+          return modeWanted(k.indexOf("移码") === 0 ? "移码" : k.slice(0, 2));
+        }
+        if (k === "IEEE754 单精度") return modeWanted("IEEE754") || bits === 32;
+        return true;
+      });
+      show.forEach(function (k) { kv.appendChild(el("div", "item", "<div class='k'>" + k + "</div><div class='v'>" + MD.escapeHtml(String(data[k])) + "</div>")); });
+    }
+
+    var presets = [
+      { n: "全 0", v: function () { return new Array(bits).fill(0); } },
+      { n: "最小负数（补码）", v: function () { return ("1" + new Array(bits).fill(0).join("")).slice(-bits).split("").map(Number); } },
+      { n: "最大正数（补码）", v: function () { return ("0" + new Array(bits).fill(1).join("")).slice(-bits).split("").map(Number); } },
+      { n: "-1 的补码", v: function () { return new Array(bits).fill(1); } },
+      { n: "+127", v: function () { return toBits(127).split("").map(Number); } },
+      { n: "-128", v: function () { return toBits(128).split("").map(Number); } }
+    ];
+    presets.forEach(function (p) {
+      var b = btn(p.n, "ghost");
+      on(b, "click", function () { var nv = p.v(); for (var i = 0; i < bits; i++) arr[i] = nv[i] || 0; render(); ctx.onInteract(); });
+      bar.appendChild(b);
+    });
+    host.appendChild(bar);
+    host.appendChild(bitBox);
+    host.appendChild(kv);
+    host.appendChild(note);
+    render();
+  }
+
+  /* ================================================== 6. datalab 通用单步器 */
+  function renderDatalab(host, cfg) {
+    var steps = cfg.steps || [];
+    var idx = 0;
+    var bar = el("div", "lab-bar");
+    var bPrev = btn("‹ 上一步", "ghost"), bNext = btn("下一步 ›"), bPlay = btn("⏵ 自动");
+    var counter = el("div", "lab-stat");
+    var body = el("div", "lab-panel");
+    var noteBox = el("div", "lab-note");
+
+    function draw() {
+      var s = steps[Math.min(idx, steps.length - 1)] || { desc: "", state: {} };
+      counter.textContent = "第 " + (idx + 1) + " / " + steps.length + " 步";
+      body.innerHTML = "";
+      body.appendChild(el("div", "lab-stat", MD.escapeHtml(s.desc || "")));
+      var kv = el("div", "kv");
+      kv.style.marginTop = "8px";
+      Object.keys(s.state || {}).forEach(function (k) {
+        var v = s.state[k];
+        var val = Array.isArray(v) ? v.join(" | ") : String(v);
+        kv.appendChild(el("div", "item", "<div class='k'>" + MD.escapeHtml(k) + "</div><div class='v'>" + MD.escapeHtml(val) + "</div>"));
+      });
+      body.appendChild(kv);
+      noteBox.innerHTML = s.note ? "💡 " + MD.escapeHtml(s.note) : "";
+    }
+    var timer = null;
+    on(bNext, "click", function () { if (idx < steps.length - 1) { idx++; draw(); } });
+    on(bPrev, "click", function () { if (idx > 0) { idx--; draw(); } });
+    on(bPlay, "click", function () {
+      if (timer) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动"; return; }
+      bPlay.textContent = "⏸ 暂停";
+      timer = setInterval(function () {
+        if (idx >= steps.length - 1) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动"; return; }
+        idx++; draw();
+      }, 900);
+    });
+    bar.appendChild(bPrev); bar.appendChild(bNext); bar.appendChild(bPlay);
+    bar.appendChild(el("div", "spacer")); bar.appendChild(counter);
+    host.appendChild(bar);
+    host.appendChild(body);
+    host.appendChild(noteBox);
+    draw();
+  }
+
+  /* ============================================ 7. tablelab 判定表/真值表 */
+  /**
+   * config = {
+   *   vars: ["P","Q"],                        // 左侧条件列（逐行给定取值）
+   *   cols: ["P∧Q","P→Q"],                    // 右侧待判定列
+   *   rows: [ { vals:["T","T"], cells:{"P∧Q":"T","P→Q":"T"}, note:"…" } ],
+   *   legend: "说明文字"
+   * }
+   * 交互：右侧结果先遮住，学生逐行自己判，点「显示本行」核对；也可点「全部显示」。
+   */
+  function renderTablelab(host, cfg) {
+    var vars = cfg.vars || [];
+    var cols = cfg.cols || [];
+    var rows = cfg.rows || [];
+    var revealed = rows.map(function () { return false; });
+
+    var bar = el("div", "lab-bar");
+    var stat = el("div", "lab-stat", rows.length + " 行待判定");
+    var bAll = btn("全部显示");
+    var bHide = btn("全部遮住", "ghost");
+    bar.appendChild(bAll); bar.appendChild(bHide);
+    bar.appendChild(el("div", "spacer")); bar.appendChild(stat);
+    host.appendChild(bar);
+
+    var panel = el("div", "lab-panel");
+    var tbl = el("table", "ttable");
+    var thead = el("thead");
+    var htr = el("tr");
+    vars.forEach(function (v) { htr.appendChild(el("th", null, MD.escapeHtml(v))); });
+    cols.forEach(function (c) { htr.appendChild(el("th", null, MD.escapeHtml(c))); });
+    htr.appendChild(el("th", null, "核对"));
+    thead.appendChild(htr);
+    tbl.appendChild(thead);
+
+    var tbody = el("tbody");
+    var noteBox = el("div", "lab-note");
+    function draw() {
+      tbody.innerHTML = "";
+      rows.forEach(function (r, ri) {
+        var tr = el("tr");
+        (r.vals || []).forEach(function (v) { tr.appendChild(el("td", "vv", MD.escapeHtml(String(v)))); });
+        cols.forEach(function (c) {
+          var cell = (r.cells || {})[c];
+          var td = el("td", revealed[ri] ? "res on" : "res", revealed[ri] ? MD.escapeHtml(String(cell == null ? "?" : cell)) : "?");
+          tr.appendChild(td);
+        });
+        var tdBtn = el("td");
+        var b = btn(revealed[ri] ? "遮住" : "显示本行", "ghost");
+        on(b, "click", function () {
+          revealed[ri] = !revealed[ri];
+          draw();
+          noteBox.innerHTML = revealed[ri] && r.note ? "💡 " + MD.escapeHtml(r.note) : (cfg.legend ? MD.escapeHtml(cfg.legend) : "");
+        });
+        tdBtn.appendChild(b);
+        tr.appendChild(tdBtn);
+        tbody.appendChild(tr);
+      });
+      var shown = revealed.filter(Boolean).length;
+      stat.textContent = "已核对 " + shown + " / " + rows.length + " 行";
+    }
+    tbl.appendChild(tbody);
+    panel.appendChild(tbl);
+    noteBox.innerHTML = cfg.legend ? MD.escapeHtml(cfg.legend) : "";
+    panel.appendChild(noteBox);
+    on(bAll, "click", function () { revealed = rows.map(function () { return true; }); draw(); });
+    on(bHide, "click", function () { revealed = rows.map(function () { return false; }); draw(); });
+    host.appendChild(panel);
+    draw();
+  }
+
+  /* ------------------------------------------------------------ 导出 */
+  var RENDERERS = {
+    pathlab: renderPathlab,
+    schedlab: renderSchedlab,
+    cpulab: renderCpulab,
+    pagelab: renderPagelab,
+    arbitlab: renderArbitlab,
+    datalab: renderDatalab,
+    steplab: renderDatalab,   // 哲学站主力：与 datalab 同构，语义更贴切的别名
+    tablelab: renderTablelab
+  };
+
+  global.LABS = {
+    render: function (host, block, ctx) {
+      var fn = RENDERERS[block.lab];
+      if (!fn) { host.textContent = "未知实验类型：" + block.lab; return; }
+      fn(host, block.config || {}, ctx || { onInteract: function () {} });
+    },
+    types: Object.keys(RENDERERS),
+    runPage: runPage
+  };
+})(window);

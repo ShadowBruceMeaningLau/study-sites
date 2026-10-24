@@ -1,0 +1,409 @@
+{
+ "ai-ml.js": {
+  "courses": 1,
+  "lessons": 7,
+  "blocks": 60,
+  "quiz": 28,
+  "labs": 8,
+  "textChars": 54685,
+  "byType": {
+   "calc": 8,
+   "code": 7,
+   "concept": 30,
+   "interactive": 8,
+   "lab": 2,
+   "pitfall": 5
+  }
+ },
+ "algorithms.js": {
+  "courses": 1,
+  "lessons": 8,
+  "blocks": 69,
+  "quiz": 32,
+  "labs": 11,
+  "textChars": 39402,
+  "byType": {
+   "analogy": 1,
+   "calc": 8,
+   "code": 21,
+   "concept": 11,
+   "interactive": 11,
+   "lab": 7,
+   "pitfall": 8,
+   "steps": 2
+  }
+ },
+ "compilers.js": {
+  "courses": 1,
+  "lessons": 7,
+  "blocks": 55,
+  "quiz": 28,
+  "labs": 9,
+  "textChars": 45044,
+  "byType": {
+   "calc": 5,
+   "code": 11,
+   "concept": 12,
+   "interactive": 9,
+   "lab": 6,
+   "pitfall": 7,
+   "steps": 5
+  }
+ },
+ "computation-theory.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 54,
+  "quiz": 24,
+  "labs": 8,
+  "textChars": 53268,
+  "byType": {
+   "calc": 6,
+   "code": 6,
+   "concept": 27,
+   "interactive": 8,
+   "pitfall": 6,
+   "steps": 1
+  }
+ },
+ "computer-architecture.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 54,
+  "quiz": 24,
+  "labs": 9,
+  "textChars": 36060,
+  "byType": {
+   "analogy": 1,
+   "calc": 9,
+   "code": 9,
+   "concept": 18,
+   "interactive": 9,
+   "lab": 1,
+   "pitfall": 6,
+   "steps": 1
+  }
+ },
+ "computer-networks.js": {
+  "courses": 1,
+  "lessons": 9,
+  "blocks": 80,
+  "quiz": 36,
+  "labs": 9,
+  "textChars": 65038,
+  "byType": {
+   "analogy": 3,
+   "calc": 7,
+   "code": 3,
+   "concept": 37,
+   "interactive": 9,
+   "lab": 9,
+   "pitfall": 7,
+   "steps": 5
+  }
+ },
+ "computer-organization.js": {
+  "courses": 1,
+  "lessons": 9,
+  "blocks": 74,
+  "quiz": 36,
+  "labs": 10,
+  "textChars": 48607,
+  "byType": {
+   "analogy": 1,
+   "calc": 11,
+   "code": 6,
+   "concept": 24,
+   "interactive": 10,
+   "lab": 7,
+   "pitfall": 9,
+   "steps": 6
+  }
+ },
+ "cs-zero-basics.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 54,
+  "quiz": 24,
+  "labs": 7,
+  "textChars": 39158,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "code": 12,
+   "concept": 14,
+   "interactive": 7,
+   "lab": 3,
+   "pitfall": 2,
+   "steps": 4
+  }
+ },
+ "cs408-drills.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 31,
+  "quiz": 24,
+  "labs": 13,
+  "textChars": 38595,
+  "byType": {
+   "calc": 6,
+   "concept": 6,
+   "interactive": 13,
+   "pitfall": 6
+  }
+ },
+ "cs408-intensive.js": {
+  "courses": 1,
+  "lessons": 8,
+  "blocks": 60,
+  "quiz": 32,
+  "labs": 10,
+  "textChars": 52236,
+  "byType": {
+   "calc": 16,
+   "concept": 10,
+   "interactive": 10,
+   "lab": 8,
+   "pitfall": 8,
+   "steps": 8
+  }
+ },
+ "data-structures.js": {
+  "courses": 1,
+  "lessons": 8,
+  "blocks": 81,
+  "quiz": 32,
+  "labs": 9,
+  "textChars": 48358,
+  "byType": {
+   "calc": 9,
+   "code": 16,
+   "concept": 29,
+   "interactive": 9,
+   "lab": 8,
+   "pitfall": 8,
+   "steps": 2
+  }
+ },
+ "database-systems.js": {
+  "courses": 1,
+  "lessons": 8,
+  "blocks": 58,
+  "quiz": 32,
+  "labs": 8,
+  "textChars": 62237,
+  "byType": {
+   "analogy": 1,
+   "calc": 8,
+   "code": 12,
+   "concept": 19,
+   "interactive": 8,
+   "pitfall": 7,
+   "steps": 3
+  }
+ },
+ "digital-logic.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 54,
+  "quiz": 24,
+  "labs": 7,
+  "textChars": 52143,
+  "byType": {
+   "calc": 6,
+   "code": 6,
+   "concept": 27,
+   "interactive": 7,
+   "pitfall": 6,
+   "steps": 2
+  }
+ },
+ "discrete-math.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 50,
+  "quiz": 24,
+  "labs": 8,
+  "textChars": 25651,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "code": 6,
+   "concept": 6,
+   "interactive": 8,
+   "lab": 6,
+   "pitfall": 6,
+   "steps": 6
+  }
+ },
+ "ds-graph-advanced.js": {
+  "courses": 1,
+  "lessons": 4,
+  "blocks": 35,
+  "quiz": 16,
+  "labs": 6,
+  "textChars": 34994,
+  "byType": {
+   "calc": 4,
+   "code": 4,
+   "concept": 13,
+   "interactive": 6,
+   "lab": 3,
+   "pitfall": 4,
+   "steps": 1
+  }
+ },
+ "ds-sorting-searching.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 52,
+  "quiz": 24,
+  "labs": 9,
+  "textChars": 48939,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "code": 12,
+   "concept": 6,
+   "interactive": 9,
+   "lab": 1,
+   "pitfall": 6,
+   "steps": 6
+  }
+ },
+ "information-security.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 52,
+  "quiz": 24,
+  "labs": 8,
+  "textChars": 83283,
+  "byType": {
+   "calc": 6,
+   "code": 4,
+   "concept": 29,
+   "interactive": 8,
+   "pitfall": 3,
+   "steps": 2
+  }
+ },
+ "math-foundation.js": {
+  "courses": 1,
+  "lessons": 12,
+  "blocks": 107,
+  "quiz": 48,
+  "labs": 11,
+  "textChars": 152361,
+  "byType": {
+   "calc": 11,
+   "code": 11,
+   "concept": 57,
+   "interactive": 11,
+   "lab": 2,
+   "pitfall": 11,
+   "steps": 4
+  }
+ },
+ "oop-java.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 54,
+  "quiz": 24,
+  "labs": 8,
+  "textChars": 52467,
+  "byType": {
+   "calc": 6,
+   "code": 16,
+   "concept": 15,
+   "interactive": 8,
+   "lab": 3,
+   "pitfall": 5,
+   "steps": 1
+  }
+ },
+ "operating-systems.js": {
+  "courses": 1,
+  "lessons": 9,
+  "blocks": 78,
+  "quiz": 36,
+  "labs": 7,
+  "textChars": 55428,
+  "byType": {
+   "analogy": 2,
+   "calc": 10,
+   "code": 6,
+   "concept": 31,
+   "interactive": 7,
+   "lab": 6,
+   "pitfall": 9,
+   "steps": 7
+  }
+ },
+ "parallel-distributed.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 54,
+  "quiz": 24,
+  "labs": 6,
+  "textChars": 55418,
+  "byType": {
+   "calc": 6,
+   "code": 5,
+   "concept": 26,
+   "interactive": 6,
+   "lab": 5,
+   "pitfall": 6
+  }
+ },
+ "programming-basics.js": {
+  "courses": 1,
+  "lessons": 8,
+  "blocks": 71,
+  "quiz": 32,
+  "labs": 12,
+  "textChars": 40200,
+  "byType": {
+   "calc": 8,
+   "code": 23,
+   "concept": 13,
+   "interactive": 12,
+   "lab": 7,
+   "pitfall": 7,
+   "steps": 1
+  }
+ },
+ "software-engineering.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 52,
+  "quiz": 24,
+  "labs": 4,
+  "textChars": 34951,
+  "byType": {
+   "calc": 6,
+   "code": 9,
+   "concept": 18,
+   "interactive": 4,
+   "lab": 6,
+   "pitfall": 6,
+   "steps": 3
+  }
+ },
+ "systems-practice.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 49,
+  "quiz": 25,
+  "labs": 7,
+  "textChars": 44515,
+  "byType": {
+   "calc": 6,
+   "code": 8,
+   "concept": 10,
+   "interactive": 7,
+   "lab": 6,
+   "pitfall": 6,
+   "steps": 6
+  }
+ }
+}

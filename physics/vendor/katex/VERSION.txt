@@ -1,0 +1,4 @@
+KaTeX 0.18.7
+来源: https://cdn.jsdelivr.net/npm/katex@0.18.7/dist/
+文件: katex.min.js / katex.min.css / fonts/*.woff2
+重新下载: node tools/fetch-katex.mjs --version 0.18.7

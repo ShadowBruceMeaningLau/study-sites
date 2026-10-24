@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>哲学本科 · 互动学习站</title>
+<link rel="stylesheet" href="app/app.css">
+</head>
+<body>
+<div id="app" class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">Φ</div>
+      <div class="brand-text">
+        <strong>哲学本科</strong>
+        <span>互动学习站 · 离线可用</span>
+      </div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-foot">
+      <div class="ring-wrap" id="ringWrap">
+        <svg viewBox="0 0 42 42" class="ring"><circle class="ring-bg" cx="21" cy="21" r="18"></circle><circle class="ring-fg" id="ringFg" cx="21" cy="21" r="18"></circle></svg>
+        <div class="ring-label"><b id="ringPct">0%</b><span>总进度</span></div>
+      </div>
+      <div class="foot-actions">
+        <button class="btn ghost sm" id="btnCards" title="间隔重复闪卡">🃏 闪卡</button>
+        <button class="btn ghost sm" id="btnReview" title="从错题和最薄弱的课里随机抽题">🔁 复习</button>
+        <button class="btn ghost sm" id="btnNotebook" title="错题本">📕 错题本</button>
+        <button class="btn ghost sm" id="btnGloss" title="完整术语表">📖 术语表</button>
+        <button class="btn ghost sm" id="btnTheme" title="切换深色 / 浅色">🌗</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <header class="topbar">
+      <button class="btn ghost icon only-mobile" id="btnMenu" aria-label="菜单">☰</button>
+      <div class="crumbs" id="crumbs"></div>
+      <div class="topbar-search">
+        <input id="search" type="search" placeholder="搜索课程 / 概念 / 论证（按 / 聚焦）" autocomplete="off">
+        <div class="search-pop" id="searchPop" hidden></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn ghost sm" id="btnGlossToggle" title="把正文里的已知术语标成可点击">🖍 生词标注：关</button>
+        <button class="btn ghost sm" id="btnTerm" title="查一个术语（术语表 166 条 + 全部闪卡）">🔍 查术语</button>
+        <button class="btn ghost sm" id="btnData" title="导出 / 导入学习进度">💾 数据</button>
+      </div>
+    </header>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+
+<!-- 课程数据 + 引擎（全部为普通 script，file:// 双击即可运行，无需服务器） -->
+<script>
+  window.COURSE_PACKS = [];
+  // 精读轨迹的数据文件（data/reading-*.js）第一行就是 window.READING_PLANS.push(...)，
+  // 这里必须先初始化，否则那三个文件一加载就抛 TypeError，
+  // 页面不会崩（app.js 用 (global.READING_PLANS || []) 兜底）但整块「精读轨迹」会静默消失。
+  // 独立审计发现：模板漏了这一行，而 build/validate/smoke 三个工具都预先塞好了这个全局量，
+  // 于是谁也没报错——只有真的用浏览器打开 index.html 才看得见。
+  window.READING_PLANS = [];
+</script>
+<!--DATA-->
+<script src="app/glossary.js"></script>
+<script src="app/markdown.js"></script>
+<script src="app/labs.js"></script>
+<script src="app/quiz.js"></script>
+<script src="app/app.js"></script>
+</body>
+</html>

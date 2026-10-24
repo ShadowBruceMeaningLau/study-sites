@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>公式渲染自检页</title>
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../app/app.css">
+<script src="../vendor/katex/katex.min.js"></script>
+<script src="../app/mathrender.js"></script>
+<script src="../app/markdown.js"></script>
+<style>
+  body { font-family: system-ui, "Microsoft YaHei", sans-serif; margin: 24px; line-height: 1.9; }
+  .demo { max-width: 900px; }
+  h1 { font-size: 20px; }
+  .case { border-bottom: 1px solid #ddd; padding: 6px 0; }
+  .src { color: #888; font-size: 12px; font-family: ui-monospace, Consolas, monospace; }
+</style>
+</head>
+<body>
+<div class="demo" id="demo"></div>
+<div id="selfcheck">pending</div>
+<script>
+(function () {
+  var cases = [
+    "行内公式：当 $n \\to \\infty$ 时，$\\frac{1}{n} \\to 0$。",
+    "根号与上下标：$\\sqrt{x^2+y^2}$，$a_{i,j}$，$x^{2n+1}$。",
+    "求和与极限：$\\sum_{k=1}^{n} \\frac{1}{k^2} = \\frac{\\pi^2}{6}$，$\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1$。",
+    "积分：$\\int_0^1 x^2 \\, dx = \\frac{1}{3}$，$\\oint_C \\frac{dz}{z} = 2\\pi i$。",
+    "矩阵：$A = \\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$，$\\det A = ad - bc$。",
+    "希腊字母与关系：$\\alpha \\le \\beta \\Rightarrow \\gamma \\ne \\delta$。",
+    "公式里的中文：$\\text{面积} = \\pi r^2$。",
+    "不该被当成公式的：在 shell 里 echo $? 看退出码；SQL 里写 $1 占位符；Java 编译出 Outer$1.class。",
+    "价格是 5$ 还是 6$ 这种写法也不该变成公式。",
+    "$$ \\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi} $$"
+  ];
+  var host = document.getElementById("demo");
+  var html = "<h1>公式渲染自检</h1>";
+  cases.forEach(function (c, i) {
+    html += '<div class="case"><div class="src">用例 ' + (i + 1) + '：' + MD.escapeHtml(c) + "</div>" + MD.md(c) + "</div>";
+  });
+  host.innerHTML = html;
+
+  function report() {
+    var katexNodes = document.querySelectorAll(".katex").length;
+    var errNodes = document.querySelectorAll(".mr-error").length;
+    var mathSpans = document.querySelectorAll(".math, .math-display").length;
+    // 字体是否真的加载成功：遍历 FontFaceSet 里每条 @font-face 的状态
+    // （file:// 下浏览器可能按 CORS 拒掉字体文件，那样公式会掉回系统字体、排版走样）
+    var byStatus = {};
+    var bad = [];
+    if (document.fonts && document.fonts.forEach) {
+      document.fonts.forEach(function (f) {
+        byStatus[f.status] = (byStatus[f.status] || 0) + 1;
+        if (f.status === "error") bad.push(f.family);
+      });
+    }
+    var probe = document.createElement("span");
+    probe.style.font = '16px KaTeX_Main, serif';
+    probe.textContent = "M";
+    document.body.appendChild(probe);
+    var w = probe.getBoundingClientRect().width;
+    document.getElementById("selfcheck").textContent =
+      "SELFCHECK engine=" + MATHR.engine() +
+      " katexNodes=" + katexNodes +
+      " mathSpans=" + mathSpans +
+      " errors=" + errNodes +
+      " fonts=" + JSON.stringify(byStatus) +
+      " fontErrors=" + (bad.length ? bad.join(",") : "none") +
+      " probeWidth=" + w.toFixed(2);
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(report);
+  else report();
+})();
+</script>
+</body>
+</html>

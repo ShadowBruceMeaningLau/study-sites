@@ -1,0 +1,399 @@
+{
+ "abstract-algebra.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 51,
+  "quiz": 21,
+  "labs": 13,
+  "textChars": 44288,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "concept": 10,
+   "interactive": 13,
+   "lab": 4,
+   "pitfall": 6,
+   "steps": 6
+  }
+ },
+ "analytic-geometry.js": {
+  "courses": 1,
+  "lessons": 5,
+  "blocks": 44,
+  "quiz": 20,
+  "labs": 7,
+  "textChars": 30947,
+  "byType": {
+   "analogy": 5,
+   "calc": 5,
+   "code": 2,
+   "concept": 14,
+   "interactive": 7,
+   "lab": 5,
+   "pitfall": 5,
+   "steps": 1
+  }
+ },
+ "combinatorics.js": {
+  "courses": 1,
+  "lessons": 5,
+  "blocks": 43,
+  "quiz": 20,
+  "labs": 8,
+  "textChars": 37924,
+  "byType": {
+   "analogy": 5,
+   "calc": 5,
+   "code": 5,
+   "concept": 13,
+   "interactive": 8,
+   "pitfall": 5,
+   "steps": 2
+  }
+ },
+ "complex-analysis.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 52,
+  "quiz": 24,
+  "labs": 9,
+  "textChars": 45847,
+  "byType": {
+   "analogy": 4,
+   "calc": 5,
+   "code": 1,
+   "concept": 25,
+   "interactive": 9,
+   "lab": 1,
+   "pitfall": 4,
+   "steps": 3
+  }
+ },
+ "differential-geometry.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 53,
+  "quiz": 24,
+  "labs": 8,
+  "textChars": 50921,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "code": 2,
+   "concept": 18,
+   "interactive": 8,
+   "lab": 6,
+   "pitfall": 6,
+   "steps": 1
+  }
+ },
+ "fourier-analysis.js": {
+  "courses": 1,
+  "lessons": 5,
+  "blocks": 39,
+  "quiz": 20,
+  "labs": 6,
+  "textChars": 42939,
+  "byType": {
+   "analogy": 1,
+   "calc": 5,
+   "code": 5,
+   "concept": 12,
+   "interactive": 6,
+   "pitfall": 5,
+   "steps": 5
+  }
+ },
+ "functional-analysis.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 54,
+  "quiz": 24,
+  "labs": 7,
+  "textChars": 52068,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "code": 5,
+   "concept": 18,
+   "interactive": 7,
+   "pitfall": 6,
+   "steps": 6
+  }
+ },
+ "linear-algebra-1.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 42,
+  "quiz": 24,
+  "labs": 6,
+  "textChars": 38782,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "code": 6,
+   "concept": 6,
+   "interactive": 6,
+   "pitfall": 6,
+   "steps": 6
+  }
+ },
+ "linear-algebra-2.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 42,
+  "quiz": 24,
+  "labs": 9,
+  "textChars": 52832,
+  "byType": {
+   "analogy": 6,
+   "calc": 2,
+   "code": 2,
+   "concept": 16,
+   "interactive": 9,
+   "pitfall": 6,
+   "steps": 1
+  }
+ },
+ "math-analysis-1.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 48,
+  "quiz": 23,
+  "labs": 7,
+  "textChars": 41382,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "code": 4,
+   "concept": 11,
+   "interactive": 7,
+   "lab": 2,
+   "pitfall": 6,
+   "steps": 6
+  }
+ },
+ "math-analysis-2.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 48,
+  "quiz": 24,
+  "labs": 6,
+  "textChars": 42017,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "code": 1,
+   "concept": 21,
+   "interactive": 6,
+   "pitfall": 6,
+   "steps": 2
+  }
+ },
+ "math-analysis-3.js": {
+  "courses": 1,
+  "lessons": 5,
+  "blocks": 45,
+  "quiz": 20,
+  "labs": 8,
+  "textChars": 31125,
+  "byType": {
+   "analogy": 5,
+   "calc": 5,
+   "concept": 16,
+   "interactive": 8,
+   "lab": 3,
+   "pitfall": 4,
+   "steps": 4
+  }
+ },
+ "math-history.js": {
+  "courses": 1,
+  "lessons": 5,
+  "blocks": 45,
+  "quiz": 20,
+  "labs": 9,
+  "textChars": 49975,
+  "byType": {
+   "analogy": 3,
+   "calc": 5,
+   "code": 1,
+   "concept": 20,
+   "interactive": 9,
+   "pitfall": 5,
+   "steps": 2
+  }
+ },
+ "math-zero-basics.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 63,
+  "quiz": 24,
+  "labs": 6,
+  "textChars": 61653,
+  "byType": {
+   "analogy": 6,
+   "calc": 4,
+   "code": 4,
+   "concept": 35,
+   "interactive": 6,
+   "lab": 3,
+   "pitfall": 4,
+   "steps": 1
+  }
+ },
+ "number-theory.js": {
+  "courses": 1,
+  "lessons": 5,
+  "blocks": 44,
+  "quiz": 20,
+  "labs": 7,
+  "textChars": 50302,
+  "byType": {
+   "analogy": 2,
+   "calc": 6,
+   "code": 4,
+   "concept": 18,
+   "interactive": 7,
+   "pitfall": 5,
+   "steps": 2
+  }
+ },
+ "numerical-analysis.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 66,
+  "quiz": 24,
+  "labs": 7,
+  "textChars": 75117,
+  "byType": {
+   "analogy": 1,
+   "calc": 6,
+   "code": 6,
+   "concept": 29,
+   "interactive": 7,
+   "lab": 6,
+   "pitfall": 6,
+   "steps": 5
+  }
+ },
+ "ode.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 50,
+  "quiz": 24,
+  "labs": 7,
+  "textChars": 37977,
+  "byType": {
+   "analogy": 5,
+   "calc": 4,
+   "code": 4,
+   "concept": 17,
+   "interactive": 7,
+   "lab": 4,
+   "pitfall": 6,
+   "steps": 3
+  }
+ },
+ "pde.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 50,
+  "quiz": 24,
+  "labs": 8,
+  "textChars": 53619,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "code": 2,
+   "concept": 12,
+   "interactive": 8,
+   "lab": 4,
+   "pitfall": 6,
+   "steps": 6
+  }
+ },
+ "probability.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 49,
+  "quiz": 24,
+  "labs": 9,
+  "textChars": 34228,
+  "byType": {
+   "analogy": 6,
+   "calc": 6,
+   "code": 4,
+   "concept": 13,
+   "interactive": 9,
+   "pitfall": 6,
+   "steps": 5
+  }
+ },
+ "real-analysis.js": {
+  "courses": 1,
+  "lessons": 5,
+  "blocks": 45,
+  "quiz": 20,
+  "labs": 7,
+  "textChars": 44532,
+  "byType": {
+   "calc": 5,
+   "code": 1,
+   "concept": 25,
+   "interactive": 7,
+   "pitfall": 5,
+   "steps": 2
+  }
+ },
+ "set-theory.js": {
+  "courses": 1,
+  "lessons": 5,
+  "blocks": 44,
+  "quiz": 20,
+  "labs": 7,
+  "textChars": 40505,
+  "byType": {
+   "calc": 5,
+   "concept": 19,
+   "interactive": 7,
+   "lab": 5,
+   "pitfall": 5,
+   "steps": 3
+  }
+ },
+ "statistics.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 54,
+  "quiz": 24,
+  "labs": 8,
+  "textChars": 50135,
+  "byType": {
+   "analogy": 3,
+   "calc": 6,
+   "concept": 30,
+   "interactive": 8,
+   "pitfall": 6,
+   "steps": 1
+  }
+ },
+ "topology.js": {
+  "courses": 1,
+  "lessons": 6,
+  "blocks": 52,
+  "quiz": 24,
+  "labs": 7,
+  "textChars": 51306,
+  "byType": {
+   "analogy": 6,
+   "calc": 5,
+   "code": 2,
+   "concept": 17,
+   "interactive": 7,
+   "lab": 6,
+   "pitfall": 6,
+   "steps": 3
+  }
+ }
+}
