@@ -36,8 +36,38 @@ for (const { course } of packs) {
   byId.set(course.id, course);
 }
 
+// 别名：允许 need 用「短名」引用，即 title 截到第一个分隔符为止的部分。
+// 例如 title「Tokenizer 与词表：文字怎么变成数字」→ 别名「Tokenizer 与词表」。
+// 只有当这个短名唯一定位到一门课、且没有别的课用全名占用它时才登记——
+// 否则（两门课短名相同）宁可不登记，让它照旧报悬空引用，而不是张冠李戴。
+const aliasLists = new Map();
+for (const { course } of packs) {
+  const full = course.title.replace(/\s+/g, "");
+  const short = full.split(/[：:（(·]/)[0];
+  if (short && short !== full) {
+    if (!aliasLists.has(short)) aliasLists.set(short, []);
+    aliasLists.get(short).push(course);
+  }
+}
+for (const [name, list] of aliasLists) {
+  if (list.length === 1 && !byTitle.has(name)) byTitle.set(name, list[0]);
+}
+
 let errors = 0;
 let warnings = 0;
+
+// 路线图上「尚未交付」的课：前置引用指向它们时只告警、不判悬空——
+// 这门站是分批写的，后面几波要引用前面还没落盘的课。
+// ★ 只登记真正计划内的课名；写错字或引用不存在的课仍然照旧报错。
+const PLANNED = new Set([
+  "Tokenizer 与词表", "注意力与 Transformer", "预训练与推理",
+  "模型前沿专题（2026-10）", "后训练与对齐前沿", "提示词工程",
+  "推理 API 与流式输出", "Harness 解剖", "Agent 协议生态（2026-10）",
+  "工具调用", "RAG", "微调入门", "Agent 核心", "评测 Harness",
+  "项目 1：本地 RAG 问答助手", "项目 2：CLI 工具型 Agent",
+  "项目 3：给自家 Agent 写评测", "项目 4：DSH 扩展实战",
+  "前沿追踪路线图", "神经网络"
+].map((s) => s.replace(/\s+/g, "")));
 
 console.log("=== 前置声明校验（audit-prereqs）===");
 for (const { file, course } of packs) {
@@ -61,6 +91,10 @@ for (const { file, course } of packs) {
       const body = norm.replace(/（第\s*\d+\s*讲）$/, "").replace(/\(第\s*\d+\s*讲\)$/, "");
       const hit2 = byTitle.get(body);
       if (hit2) continue;
+      if (PLANNED.has(norm) || PLANNED.has(body)) {
+        console.log("[提示] " + course.id + " 引用了计划中但尚未交付的课「" + ref + "」（等它落盘后自动变成正常前置）");
+        continue;
+      }
       problems.push("悬空引用：「" + ref + "」解析不到任何站内课程");
       continue;
     }

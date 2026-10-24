@@ -7,8 +7,8 @@
   /* ------------------------------------------------------------ 数据装配 */
   var ORDER = [
     "llm-zero-basics", "python-basics-ai", "ml-dl-basics", "neural-networks",
-    "tokenizer-bpe", "attention-transformer", "pretraining-inference",
-    "frontier-models-2026", "posttraining-alignment",
+    "tokenizer-vocab", "attention-transformer", "pretraining-inference",
+    "frontier-models", "posttraining-alignment",
     "prompt-engineering", "inference-api", "harness-anatomy",
     "agent-protocols-2026", "tool-calling", "rag", "finetuning-lora",
     "agent-core", "eval-harness",

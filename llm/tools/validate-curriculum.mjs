@@ -11,6 +11,8 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_DIR = join(ROOT, "data");
 const STRICT = !process.argv.includes("--lenient");
+// term 只有三个合法值（与 app/app.js 的 TERM_ORDER 对齐，拼错会让课程排到主线之外）
+const TERMS = ["主线 A · LLM 基础与原理", "主线 B · 工程与 Harness", "主线 C · 实战与前沿追踪"];
 
 const errors = [];
 const warnings = [];
@@ -341,6 +343,9 @@ function checkLesson(file, course, lesson, prefix) {
   if (seenLessonIds.has(lesson.id)) err(file, where, `lesson.id 重复（已出现在 ${seenLessonIds.get(lesson.id)}）`);
   else seenLessonIds.set(lesson.id, where);
   if (!isNonEmptyStr(lesson.title)) err(file, where, "缺少 title");
+  else if (lesson.title.includes('"')) {
+    err(file, where, 'title 里不能有英文双引号 "（渲染会变成 &quot;，冒烟测试会报标题缺失）；请改用中文引号「」或“”');
+  }
   if (!isNonEmptyStr(lesson.goal)) err(file, where, "缺少 goal（学习目标）");
   if (!isInt(lesson.est) || lesson.est < 5 || lesson.est > 240) err(file, where, "est 需要 5~240 的整数(分钟)");
 
@@ -360,14 +365,21 @@ function checkLesson(file, course, lesson, prefix) {
   void hasCalc;
 }
 
-function checkCourse(file, course) {
+function checkCourse(file, course, opts = {}) {
+  const relaxed = !!opts.relaxed; // fixture 这类极小样例：跳过「课程规模」下限，只查契约
   const where = `course ${course?.id ?? "?"}`;
   if (!isNonEmptyStr(course.id)) return err(file, where, "缺少 course.id");
   if (!isNonEmptyStr(course.title)) err(file, where, "缺少 title");
+  else if (course.title.includes('"')) {
+    err(file, where, 'title 里不能有英文双引号 "；请改用中文引号「」或“”');
+  }
   if (!isNonEmptyStr(course.blurb)) err(file, where, "缺少 blurb");
   if (contentLen(course.blurb) < 12) warn(file, where, "blurb 过短");
   if (!isNonEmptyStr(course.icon)) warn(file, where, "缺少 icon");
   if (!isNonEmptyStr(course.term)) warn(file, where, "缺少 term（建议修读时间）");
+  else if (!TERMS.includes(course.term)) {
+    err(file, where, `term "${course.term}" 不在合法取值里，只能是：${TERMS.join(" | ")}`);
+  }
   if (!isInt(course.hours) || course.hours < 8) warn(file, where, "hours 建议为 >=8 的整数");
   if (!isArr(course.tags)) warn(file, where, "缺少 tags");
   if (!isArr(course.lessons) || course.lessons.length < 3) return err(file, where, "lessons 至少 3 课");
@@ -393,6 +405,12 @@ function checkCourse(file, course) {
 }
 
 // ------------------------------------------------------------------- 主流程
+// 默认扫 data/*.js；也可以用 --file <相对或绝对路径> 额外校验一个文件
+// （用于校验 tools/fixture-data.js：保证 fixture 里的示例和课程数据守同一套契约）
+const extraFiles = [];
+for (let i = 0; i < process.argv.length; i++) {
+  if (process.argv[i] === "--file" && process.argv[i + 1]) extraFiles.push(process.argv[i + 1]);
+}
 let files = [];
 try {
   files = readdirSync(DATA_DIR).filter((f) => f.endsWith(".js")).sort();
@@ -400,14 +418,16 @@ try {
   console.error(`找不到目录 ${DATA_DIR}`);
   process.exit(1);
 }
-if (files.length === 0) {
+if (files.length === 0 && extraFiles.length === 0) {
   console.error("data/ 下没有任何课程文件");
   process.exit(1);
 }
 
 const packs = [];
-for (const f of files) {
-  const full = join(DATA_DIR, f);
+const targets = files
+  .map((f) => ({ f, full: join(DATA_DIR, f) }))
+  .concat(extraFiles.map((p) => ({ f: p, full: resolve(ROOT, p) })));
+for (const { f, full } of targets) {
   let code = readFileSync(full, "utf8");
   if (code.charCodeAt(0) === 0xfeff) {
     err(f, "file", "文件含 BOM，请保存为「UTF-8 无 BOM」");
@@ -440,7 +460,36 @@ for (const f of files) {
   });
 }
 
-packs.forEach(({ file, course }) => checkCourse(file, course));
+packs.forEach(({ file, course }) => checkCourse(file, course, { relaxed: !files.includes(file) }));
+
+// ------------------------------------------------ ORDER 一致性（app/app.js）
+// 课程卡片的学习路径顺序由 app/app.js 里的 ORDER 数组决定：id 拼错就会静默排到最后。
+// 规则：data/ 里出现的每个 course.id 都必须在 ORDER 里；ORDER 里多出来的先只告警
+// （本站在分批交付，后面的课还没落盘）。
+try {
+  const appJs = readFileSync(join(ROOT, "app", "app.js"), "utf8");
+  const m = /var ORDER = \[([\s\S]*?)\]/.exec(appJs);
+  if (!m) {
+    warn("app/app.js", "ORDER", "找不到 ORDER 数组，无法校验课程顺序");
+  } else {
+    const orderIds = [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]);
+    const dataIds = packs.filter((p) => files.includes(p.file)).map((p) => p.course.id);
+    for (const id of dataIds) {
+      if (id.startsWith("_")) {
+        warn("app/app.js", "ORDER", `课程「${id}」是占位/临时文件，正式交付前应删除`);
+        continue;
+      }
+      if (!orderIds.includes(id)) {
+        err("app/app.js", "ORDER", `课程「${id}」没有登记进 ORDER，学习路径顺序会错乱`);
+      }
+    }
+    for (const id of orderIds) {
+      if (!dataIds.includes(id)) warn("app/app.js", "ORDER", `ORDER 里的「${id}」还没有对应课程文件（分批交付中，可忽略）`);
+    }
+  }
+} catch (e) {
+  warn("app/app.js", "ORDER", `无法读取 app/app.js：${e.message}`);
+}
 
 // 统计
 const stat = packs.map(({ file, course }) => {
