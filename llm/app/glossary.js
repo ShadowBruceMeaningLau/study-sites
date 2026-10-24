@@ -2,7 +2,8 @@
    glossary.js —— 术语表（零依赖；LLM 学习站版）
    结构：window.GLOSSARY = { cats: [{ cat, items: [{ t, en, d, where }] }] }
    正文里点虚线术语、点开完整术语表都读这份数据。
-   W0 起步集；随各波课程交付同步增补（rebuild 规则见 llm/tools/rebuild-glossary.mjs，若存在）。
+   本文件由 tools/_rebuild_glossary.mjs 生成：先 load 旧数据、合并新词条、再整份写回，
+   避免用文本锚点往中间插入（那份文件是 CRLF + 超长单行，锚点插入极易破坏语法）。
    ========================================================================== */
 (function (global) {
   "use strict";
@@ -111,14 +112,65 @@
         { t: "层归一化（LayerNorm）", en: "layer normalization", d: "在单个位置内部对全部特征做标准化（均值 0、标准差 1），再乘可学习的缩放与偏移。让深层网络数值稳定", where: "注意力与 Transformer · 第 7 讲" },
         { t: "残差连接（residual connection）", en: "residual connection", d: "把某一层的输入直接加回它的输出。给梯度留一条系数为 1 的直通通路，深层网络才训得起来", where: "注意力与 Transformer · 第 7 讲" },
         { t: "位置编码（positional encoding）", en: "positional encoding", d: "给每个位置加一组能区分先后的数（正弦公式或可学习的向量），否则注意力对词序视而不见", where: "注意力与 Transformer · 第 6 讲" },
-        { t: "多头注意力（multi-head attention）", en: "multi-head attention", d: "并行做 h 份注意力、各自用不同投影，再把结果拼起来。必须满足 h × 每头维度 = 模型维度", where: "注意力与 Transformer · 第 4~5 讲" },
-        { t: "反向传播（backpropagation）", en: "backpropagation", d: "从损失出发、沿计算图从后往前一层层算出每个参数梯度的方法，核心是链式法则", where: "神经网络 · 第 5 讲" },
         { t: "学习率（learning rate）", en: "learning rate", d: "每次更新参数走多远的那一步长度。太小收敛极慢，太大会发散，看损失曲线的形状就能判断", where: "神经网络 · 第 7 讲" },
         { t: "批大小（batch size）", en: "batch size", d: "每更新一次参数用多少个样本来算梯度。批越大方向越稳、但一次要算更多样本", where: "神经网络 · 第 7 讲" },
         { t: "BPE（字节对编码）", en: "Byte Pair Encoding", d: "一种分词算法：从每个字符一个词元开始，反复把出现频率最高的相邻对合并成新词元", where: "Tokenizer 与词表 · 第 3 讲" },
         { t: "词表（vocabulary）", en: "vocabulary", d: "模型认识的全部词元及其编号。词表大小与序列长度是一对此消彼长的杠杆", where: "Tokenizer 与词表 · 第 2 讲" },
-        { t: "自回归（autoregressive）", en: "autoregressive", d: "每次生成一个词元、把它接到末尾再预测下一个的生成方式。因为依赖前文，所以只能逐词进行", where: "预训练与推理 · 第 4 讲" },
-        { t: "困惑度（perplexity）", en: "cross-entropy 的指数形式", d: "可理解为「模型在每个位置平均要在多少个候选里犹豫」。越低越好，是预训练最常用的指标", where: "预训练与推理 · 第 1 讲" }      ]
+        { t: "困惑度（perplexity）", en: "cross-entropy 的指数形式", d: "可理解为「模型在每个位置平均要在多少个候选里犹豫」。越低越好，是预训练最常用的指标", where: "预训练与推理 · 第 1 讲" }
+      ]
+    },
+    {
+      cat: "微调与神经网络细节",
+      items: [
+        { t: "全量微调（full fine-tuning）", en: "full fine-tuning", d: "把模型全部参数都拿去更新一遍。效果上限最高，但显存开销按参数量线性放大——7B 模型用 fp16 全量微调，光参数与梯度就远超一张消费级显卡", where: "微调入门：从全量到 LoRA · 第 1 讲" },
+        { t: "QLoRA（量化 + LoRA）", en: "Quantized LoRA", d: "把底座量化到 4 位再挂 LoRA 增量。用精度换显存，让 7B 级模型能在 8GB 显卡上微调，代价是数值精度略降", where: "微调入门：从全量到 LoRA · 第 5 讲" },
+        { t: "秩（rank, r）", en: "rank", d: "LoRA 里那两个小矩阵的中间维度。r 越大能表达的增量越复杂、参数也越多；常用值 8、16、32", where: "微调入门：从全量到 LoRA · 第 4 讲" },
+        { t: "感知机（perceptron）", en: "perceptron", d: "只有一个神经元的模型：把输入各自乘一个权重、加起来、过一道阈值。它是理解多层网络的最小起点", where: "神经网络：从感知机到多层感知机 · 第 1 讲" },
+        { t: "激活函数（activation function）", en: "activation function", d: "在每个神经元输出前加的一道非线性变换（常见的是 ReLU）。没有它，叠多少层都等价于一层线性变换", where: "神经网络：从感知机到多层感知机 · 第 4 讲" },
+        { t: "前向传播（forward pass）", en: "forward pass", d: "输入从第一层流到最后一层、算出预测值的过程。反向传播就是在这个过程上回头求梯度", where: "神经网络：从感知机到多层感知机 · 第 5 讲" }
+      ]
+    },
+    {
+      cat: "工具调用与 Agent 项目",
+      items: [
+        { t: "工具描述（tool description）", en: "tool description", d: "随工具一起发给模型的那段「这个工具干什么、什么时候该用」的文字。模型看不见函数体，描述就是它唯一的判断依据", where: "工具调用：让模型真的能做事 · 第 2 讲" },
+        { t: "参数校验（argument validation）", en: "argument validation", d: "在执行工具之前，由 harness 检查模型给的参数是否符合声明（字段、类型、必填）。不合格就拒绝并把原因回填给模型", where: "工具调用：让模型真的能做事 · 第 3 讲" },
+        { t: "工具循环（tool loop）", en: "tool loop", d: "模型请求工具 → 程序执行 → 结果回填消息历史 → 模型再看下一步，这个反复的圈就叫工具循环", where: "工具调用：让模型真的能做事 · 第 4 讲" },
+        { t: "幂等键（idempotency key）", en: "idempotency key", d: "同一个动作配同一个唯一标识。恢复时重放同一个键不会重复执行（不会重复发一封邮件、重复扣一次款）", where: "Agent 核心：从会回答到会干活 · 第 7 讲" },
+        { t: "检查点（checkpoint）", en: "checkpoint", d: "把一个长任务当前进展写到磁盘上的那份记录。有了它，中断之后能从中断处续跑，而不是从头再来", where: "Agent 核心：从会回答到会干活 · 第 7 讲" },
+        { t: "命令行 Agent（CLI agent）", en: "CLI agent", d: "跑在终端里、用工具真正读写文件跑命令的 agent。它的输出不是一段话，而是对工作区造成的改动", where: "项目 2：CLI 工具型 Agent · 第 1 讲" },
+        { t: "路径逃逸（path traversal）", en: "path traversal", d: "用 ../ 这类相对路径跑到允许目录之外去读写文件。只查前缀不够，必须把路径规范化后再判断", where: "项目 2：CLI 工具型 Agent · 第 4 讲" }
+      ]
+    },
+    {
+      cat: "RAG 工程",
+      items: [
+        { t: "分块（chunking）", en: "chunking", d: "把长文档切成小段再去做检索。切太粗会塞进大量无关内容，切太细会把一句话劈断而丢失上下文", where: "RAG：让模型用上你的资料 · 第 3 讲" },
+        { t: "召回（recall）", en: "recall", d: "资料库里真正相关的那几段，有多大比例被检索了出来。它是「有没有找到」的指标，与「排得准不准」是两件事", where: "RAG：让模型用上你的资料 · 第 5 讲" },
+        { t: "top-k 检索", en: "top-k retrieval", d: "按相似度从高到低取前 k 段。k 小则容易漏、k 大则塞进噪声并抬高成本", where: "项目 1：本地 RAG 问答助手 · 第 3 讲" },
+        { t: "余弦相似度（cosine similarity）", en: "cosine similarity", d: "两个向量夹角的余弦：方向越接近值越接近 1。它只看方向不看长度，所以适合比较语义相近程度", where: "RAG：让模型用上你的资料 · 第 4 讲" },
+        { t: "引用来源（citation）", en: "citation", d: "回答里标出这句话出自哪一段资料。它让「查到的」与「编出来的」可以被读者区分开", where: "项目 1：本地 RAG 问答助手 · 第 5 讲" }
+      ]
+    },
+    {
+      cat: "评测与前沿追踪",
+      items: [
+        { t: "打分器（scorer / grader）", en: "scorer", d: "把一条回答变成分数的那个函数：精确匹配、字面相似度、或让另一个模型来判。选哪种取决于答案的形态", where: "评测 Harness：怎么知道它真的变好了 · 第 3 讲" },
+        { t: "回归评测（regression eval）", en: "regression eval", d: "每次改动都拿同一套固定题目重跑、与历史分数比。它回答的是「这次改动有没有把原来对的弄错」", where: "评测 Harness：怎么知道它真的变好了 · 第 4 讲" },
+        { t: "基线（baseline）", en: "baseline", d: "用来对照的那个已知分数的版本。没有基线，「变好了」就只是一句感觉", where: "评测 Harness：怎么知道它真的变好了 · 第 1 讲" },
+        { t: "评测作弊（eval gaming）", en: "eval gaming", d: "针对评测集本身优化、而不是真正提升能力。分数上去了，真实任务没变好——这是 Goodhart 定律的典型表现", where: "项目 3：给自己的 Agent 写评测 · 第 5 讲" },
+        { t: "稀疏注意力（sparse attention）", en: "sparse attention", d: "不让每个位置和所有位置算注意力，只挑一部分算。它把随长度平方增长的成本压下来，是长上下文的关键手段之一", where: "模型前沿专题（2026-10）· 第 4 讲" },
+        { t: "多 token 预测（multi-token prediction）", en: "multi-token prediction", d: "让模型一次预测往后好几个 token 而不只一个。训练信号更密，推理时也能用来加速", where: "模型前沿专题（2026-10）· 第 5 讲" },
+        { t: "原生多模态（native multimodality）", en: "native multimodality", d: "文本、图像、音频从训练第一步就在同一个模型里一起学，而不是「先做语言模型、再外挂一个视觉模块」", where: "模型前沿专题（2026-10）· 第 7 讲" },
+        { t: "活页夹式前沿专题（living document）", en: "living document", d: "内容带明确截止日期、过期就需要替换的写法。前沿领域里，把「截至某月」写在正文里，比假装永久正确更诚实", where: "前沿追踪路线图：从学习者到贡献者 · 第 1 讲" },
+        { t: "arXiv 预印本（preprint）", en: "arXiv preprint", d: "未经同行评审就先公开的论文。它是最快的前沿来源，但也意味着结论可能被后续工作推翻", where: "前沿追踪路线图：从学习者到贡献者 · 第 2 讲" },
+        { t: "死代码与打补丁（patching vs extending）", en: "patching vs extending", d: "改内核代码叫打补丁，往内核留出的口子上挂东西叫扩展。区分这两者，决定了你的改动在下次升级时会不会全部失效", where: "项目 4：DSH 扩展实战 · 第 1 讲" },
+        { t: "装载器与挂载声明（loader / bundle patch）", en: "loader / bundle patch", d: "装载器在启动时读声明文件、找到入口并执行；挂载声明是一条「允许把这个包插进运行时」的记录。文件躺在硬盘上不等于被装载", where: "项目 4：DSH 扩展实战 · 第 2 讲" },
+        { t: "生命周期与注销凭证（lifecycle / disposer）", en: "lifecycle / disposer", d: "扩展从被装载、注册能力到被卸载的几个阶段。注册时交还的那个撤销函数叫注销凭证，卸载时不调用它就会留下泄漏", where: "项目 4：DSH 扩展实战 · 第 4 讲" },
+        { t: "变量与类型（variable / type）", en: "variable / type", d: "变量是给一个值起的名字，类型决定这个值能做什么运算。字符串加数字会报错，正是类型在起作用", where: "Python 编程基础（AI 方向） · 第 1 讲" },
+        { t: "列表与循环（list / loop）", en: "list / loop", d: "列表是一串有序的值，循环是按顺序把同一段代码对每个值各跑一遍。它们合起来就是「批量处理」的最小工具", where: "Python 编程基础（AI 方向） · 第 3 讲" },
+        { t: "函数（function）", en: "function", d: "把一段逻辑打包起来、给个名字、可以反复调用。参数是进口、返回值是出口，函数内部的东西外面看不见", where: "Python 编程基础（AI 方向） · 第 4 讲" }
+      ]
     }
   ];
 

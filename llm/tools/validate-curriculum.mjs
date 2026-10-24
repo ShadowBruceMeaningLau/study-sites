@@ -386,7 +386,13 @@ function checkCourse(file, course, opts = {}) {
 
   // 进阶包 advanced：app.js 按 texts/labs 列表 + project 段落 + criteria 渲染，
   // criteria 允许字符串或字符串数组（app.js 会把数组渲染成清单），写错类型会静默渲染成 [object Object]。
-  if (course.advanced !== undefined) {
+  //
+  // ★ 以前这里写成 `if (course.advanced !== undefined)`，导致「整个字段缺失」被静默放行
+  //   （真实缺陷：attention-transformer 是一讲 10 课的核心课，却没有 advanced，能力路线图页
+  //   对它显示「本课暂未收录进阶包」，而 validate 全绿）。现在改为必填：缺了直接报错。
+  if (course.advanced === undefined) {
+    err(file, where, "缺少 advanced 进阶包（texts / labs / project / criteria 四项都必填）");
+  } else {
     const adv = course.advanced;
     if (!isObj(adv)) err(file, where, "advanced 必须是对象");
     else {

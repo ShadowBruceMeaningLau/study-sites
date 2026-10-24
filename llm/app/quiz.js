@@ -24,6 +24,118 @@
   }
   function eq(a, b) { return normalize(a) === normalize(b); }
 
+  /* ================================================================
+     选项呈现顺序：确定性重排（消除「答案总在 B」的位置偏置）
+     ----------------------------------------------------------------
+     背景：题库里 78% 的单选题正确答案落在第 2 个位置（索引 1），
+     且选项顺序固定不变。学员只要一路点 B 就能拿约 78 分，测验
+     因此失去检验作用（实测：cs 站同口径是 44.7%）。
+
+     做法：按「题目 id」算一个稳定哈希，用它对选项做一次置换。
+        · 确定性：同一道题每次进来顺序一致，不会让人困惑
+        · 无关性：顺序与正确答案无关，只剩 25% 概率落在任一位置
+        · 无数据改动：题库文件保持原样，重排在渲染层完成
+
+     ★ 必须同时重映射 why 里的字母引用（90% 的解析都写「正确项是 B：
+       A 与 C 都…」）。映射是「原位置 → 新位置」的正向置换：原 A 的
+       内容现在显示在某个新字母上，所以 why 里说 A 的地方要改成那个新
+       字母。若只打乱选项而不同步改解析，讲解会全部指错 —— 那比偏置更糟。
+     ================================================================ */
+  var LETTERS = "ABCDEFGH";
+
+  /** 稳定的 32 位字符串哈希（FNV-1a 变体），只用于重排种子。 */
+  function stableHash(str) {
+    var h = 2166136261;
+    var s = String(str == null ? "" : str);
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = (h * 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+
+  /**
+   * 由种子生成一个置换数组 perm：显示在第 i 位的，是原来的第 perm[i] 个。
+   * 用带种子的 Fisher-Yates + mulberry32 生成器，保证确定性。
+   *
+   * ★ 这里刻意不用线性同余（LCG）。LCG 的低位周期极短，而这里取模的
+   *   模数是 2/3/4 这种小整数（正好吃低位），实测会导致答案仍然堆在
+   *   某一位（第一版用 LCG 时 B 位还占 49.7%、D 位只 0.9%）。
+   *   mulberry32 有 avalanche 混淆，小模数下分布才接近均匀。
+   */
+  function mulberry32(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function permutationFor(seed, n) {
+    var arr = [];
+    for (var i = 0; i < n; i++) arr.push(i);
+    var rand = mulberry32(stableHash(seed));
+    for (var k = n - 1; k > 0; k--) {
+      var j = Math.floor(rand() * (k + 1));
+      var t = arr[k]; arr[k] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  /**
+   * 把 why 里的选项字母按「原位置 → 新位置」改写。
+   * pos: 数组，pos[原索引] = 新索引。
+   * 只改独立出现的 A-H（前后都不能紧邻字母数字或连字符），
+   * 以避开 A-1024、F-16 这类产品号/型号。
+   */
+  function remapWhyLetters(why, pos, n) {
+    if (!why) return why;
+    return String(why).replace(/(^|[^A-Za-z0-9\-])([A-H])(?![A-Za-z0-9\-])/g, function (m, pre, ch) {
+      var origIdx = ch.charCodeAt(0) - 65;
+      if (origIdx >= n) return m;                // 超出本题选项数量，不是选项引用
+      var newIdx = pos[origIdx];
+      if (newIdx == null || newIdx === origIdx) return m;
+      return pre + LETTERS.charAt(newIdx);
+    });
+  }
+
+  /**
+   * 返回一道题的「呈现版本」：选项重排 + answer 重映射 + why 字母重映射。
+   * 对 fill / order 原样返回（它们没有选项顺序问题）。
+   * 幂等：已呈现过的题不再重排，避免嵌套调用造成双重置换。
+   */
+  function present(q) {
+    if (!q) return q;
+    if (q.type !== "single" && q.type !== "multi") return q;
+    if (!q.options || q.options.length < 2) return q;
+    if (q.__presented) return q;
+
+    var n = q.options.length;
+    var perm = permutationFor(String(q.id || q.q || "") + "#" + n, n);
+
+    // perm[i] = 原索引；pos[原索引] = 新索引
+    var pos = new Array(n);
+    var newOptions = new Array(n);
+    for (var i = 0; i < n; i++) {
+      pos[perm[i]] = i;
+      newOptions[i] = q.options[perm[i]];
+    }
+
+    var out = {};
+    for (var k in q) if (Object.prototype.hasOwnProperty.call(q, k)) out[k] = q[k];
+    out.options = newOptions;
+    if (q.type === "single" && typeof q.answer === "number") {
+      out.answer = pos[q.answer];
+    } else if (q.type === "multi" && Array.isArray(q.answer)) {
+      out.answer = q.answer.map(function (i) { return pos[i]; }).sort(function (a, b) { return a - b; });
+    }
+    out.why = remapWhyLetters(q.why, pos, n);
+    out.__presented = true;
+    return out;
+  }
+
   /**
    * 数值答案比对：支持容差与分数。
    *  - 用户输入 "1/3"、"0.333"、"3.33e-1" 等都能解析
@@ -106,7 +218,9 @@
         (gradedCount === questions.length ? "（本课测验完成 🎉）" : "");
     }
 
-    questions.forEach(function (q, qi) {
+    questions.forEach(function (q0, qi) {
+      // 呈现版本：选项确定性重排 + answer/why 字母同步重映射（见文件顶部 present 注释）
+      var q = present(q0);
       var card = el("div", "qcard");
       var head2 = el("div", "qhead");
       head2.appendChild(el("div", "no", "Q" + (qi + 1)));
@@ -125,9 +239,11 @@
       var pool = null, slotBox = null;
 
       if (q.type === "single" || q.type === "multi") {
+        // ★ multi 也用字母标号：题库解析里一律写「A、B、C」「D 恰恰不可靠」，
+        //   若界面显示 1/2/3/4，解析就对不上选项。单选与多选统一用字母。
         (q.options || []).forEach(function (text, oi) {
           var o = el("div", "opt");
-          o.innerHTML = "<div class='mk'>" + (q.type === "single" ? String.fromCharCode(65 + oi) : (oi + 1)) + "</div><div>" + MD.md(text) + "</div>";
+          o.innerHTML = "<div class='mk'>" + String.fromCharCode(65 + oi) + "</div><div>" + MD.md(text) + "</div>";
           o.addEventListener("click", function () {
             if (locked) return;
             if (q.type === "single") {
@@ -329,5 +445,10 @@
     host.appendChild(wrap);
   }
 
-  global.QUIZ = { render: render, renderChecklist: renderChecklist, normalize: normalize, numericEq: numericEq, gradeFill: gradeFill };
+  global.QUIZ = {
+    render: render, renderChecklist: renderChecklist, normalize: normalize,
+    numericEq: numericEq, gradeFill: gradeFill,
+    // present 暴露出去供质量门与冒烟测试校验「重排是否确定性 + 是否为置换 + why 是否同步」
+    present: present, permutationFor: permutationFor, stableHash: stableHash
+  };
 })(window);

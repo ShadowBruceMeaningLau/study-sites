@@ -435,8 +435,12 @@ try {
   const q0 = first.l.quiz[0];
   const opts = queryAll(cards[0], ".opt");
   ok(opts.length >= 3, "题卡渲染出 " + opts.length + " 个选项");
+  // ★ 选项在渲染层会被确定性重排（QUIZ.present），所以界面上「正确位置」不是 q0.answer，
+  //   而是 present 之后的 answer。必须用呈现版本算错误选项，否则会点到正确项上、
+  //   错题本里就没有记录（这个坑真实发生过：加完重排后本门禁 3 项失败）。
+  const q0view = sandbox.QUIZ && sandbox.QUIZ.present ? sandbox.QUIZ.present(q0) : q0;
   let wrongIdx = 0;
-  if (q0.type === "single") wrongIdx = q0.answer === 0 ? 1 : 0;
+  if (q0.type === "single") wrongIdx = q0view.answer === 0 ? 1 : 0;
   opts[wrongIdx].click();
   const submit = queryAll(cards[0], ".btn").find((b) => b.textContent.includes("提交"));
   submit.click();
