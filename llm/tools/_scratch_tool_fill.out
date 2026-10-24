@@ -1,0 +1,24 @@
+=== tool 角色紧跟调用 ===
+轮 1：{"code":"1000","msg":"success","data":{"desk":[{"id":"20230415172918","name":"小张的工位"},{"id":"2023041 | 复述到 B-217：否 | prompt_tokens=89
+轮 2：{"code":"1000","msg":"success","data":{"desk":[{"id":"10000000000000000000000000000000 | 复述到 B-217：否 | prompt_tokens=0
+轮 3：{"code":"1000","msg":"success","data":{"desk":[{"id":"10000000000000000000000000000000 | 复述到 B-217：否 | prompt_tokens=0
+轮 4：{"code":"1000","msg":"success","data":{"desk":[{"id":"10000000000000000000000000000000 | 复述到 B-217：否 | prompt_tokens=0
+轮 5：{"code":"1000","msg":"success","data":{"desk":[{"id":"10000000000000000000000000000000 | 复述到 B-217：否 | prompt_tokens=0
+复述率：0 / 5
+
+=== user 角色写明「工具返回」 ===
+轮 1：B-217 | 复述到 B-217：是 | prompt_tokens=114
+轮 2：B-217 | 复述到 B-217：是 | prompt_tokens=114
+轮 3：B-217 | 复述到 B-217：是 | prompt_tokens=114
+轮 4：B-217 | 复述到 B-217：是 | prompt_tokens=114
+轮 5：B-217 | 复述到 B-217：是 | prompt_tokens=114
+复述率：5 / 5
+
+=== 不回填（只有调用，没有结果） ===
+轮 1：{"code":"1000","msg":"success","data":{"desk":[{"id":"20230415172918","name":"小张的工位"},{"id":"2023041 | 复述到 B-217：否 | prompt_tokens=89
+轮 2：{"code":"1000","msg":"success","data":{"desk":[{"id":"10000000000000000000000000000000 | 复述到 B-217：否 | prompt_tokens=0
+轮 3：{"code":"1000","msg":"success","data":{"desk":[{"id":"10000000000000000000000000000000 | 复述到 B-217：否 | prompt_tokens=0
+轮 4：{"code":"1000","msg":"success","data":{"desk":[{"id":"10000000000000000000000000000000 | 复述到 B-217：否 | prompt_tokens=0
+轮 5：{"code":"1000","msg":"success","data":{"desk":[{"id":"10000000000000000000000000000000 | 复述到 B-217：否 | prompt_tokens=0
+复述率：0 / 5
+
