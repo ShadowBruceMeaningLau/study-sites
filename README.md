@@ -11,7 +11,7 @@
 ├── math/                ← 基础数学：23 门课 / 130 讲 / 176 实验 / 516 题 / 约 53 万字
 ├── physics/             ← 物理学：26 门课 / 143 讲 / 224 仿真实验 / 约 124 万字
 ├── philosophy/          ← 哲学：17 门课 / 85 讲（含单文件离线版）
-├── llm/                 ← AI：LLM·Harness·Agent，23 门课 / 163 讲 / 143 实验 / 495 题（见 llm/README.md）
+├── llm/                 ← AI：LLM·Harness·Agent，23 门课 / 166 讲 / 146 实验 / 504 题（见 llm/README.md）
 └── tools/serve-all.mjs  ← 五个站真正的服务实现（托盘和 start-all.cmd 都用它）
 ```
 

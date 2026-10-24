@@ -25,6 +25,27 @@
 tmp-*.mjs
 **/tmp-*.mjs
 
+# llm 站课程代码块的运行产物（check-python / 学员照抄运行时会重新生成）
+# ★ 这些文件不是课程输入样本：课程正文里的 Python 代码块**写入**它们，所以每次重跑内容都会变。
+#   2026-10-24 实测：把 5 个已跟踪的产物改成忽略后，check-python 仍 100% 通过——证明没有任何
+#   课程依赖它们的历史内容。留在库里的唯一效果是每次跑门禁都产生一堆无意义 diff。
+llm/_demo.txt
+llm/demo.txt
+llm/data.json
+llm/_steps.jsonl
+llm/_state_demo/
+llm/_audit/
+llm/_eval/
+llm/_kb/
+llm/_scratch_*.py
+llm/.tmp_*.py
+# 同上，课程代码块在仓库根跑出来的产物（相对路径决定的落点）
+_demo.txt
+demo.txt
+data.json
+_state_demo/
+tools/_scratch_*.js
+
 # 编辑器与系统
 .DS_Store
 Thumbs.db

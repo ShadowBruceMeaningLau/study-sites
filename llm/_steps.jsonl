@@ -1,6 +1,0 @@
-{"ts": 1792851247.7806487, "kind": "call", "step": 1, "payload": {"tool": "read_file", "args": "a.txt"}}
-{"ts": 1792851247.7811928, "kind": "result", "step": 1, "payload": {"ok": true, "chars": 120}}
-{"ts": 1792851247.7819746, "kind": "call", "step": 2, "payload": {"tool": "read_file", "args": "a.txt"}}
-{"ts": 1792851247.7822263, "kind": "result", "step": 2, "payload": {"ok": true, "chars": 120}}
-{"ts": 1792851247.782992, "kind": "call", "step": 3, "payload": {"tool": "write_file", "args": "report.md"}}
-{"ts": 1792851247.7918131, "kind": "result", "step": 3, "payload": {"ok": true, "bytes": 210}}

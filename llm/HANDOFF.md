@@ -1,9 +1,12 @@
 # HANDOFF — LLM / Harness / Agent 学习站 · 完整交接文档
 
 > **读这一份就够了。** 本文件自包含：不需要了解之前任何会话的历史。
-> 上下文被压缩、或换新会话/新模型接手时，从 §1 顺序读，照 §7 执行即可。
+> 上下文被压缩、或换新会话/新模型接手时，从 §1 顺序读。
 >
-> 最后更新：2026-10-24 21:42（UTC+8）
+> **★ 状态：站点已完工（2026-10-24 22:40）。** 23 门课 / 166 讲 / 146 实验 / 504 题，八道质量门 + 浏览器级验证全绿，五站集成完成并实测通过。
+> 本文件保留了"继续开发"的完整流程（§7）与规格（§5）——若要新增课程、修 bug 或迁移，照那些节做即可。
+>
+> 最后更新：2026-10-24 22:40（UTC+8）
 
 ---
 
@@ -26,9 +29,23 @@
 
 ## 2. 当前进度
 
-**已建成 21 门课 / 144 讲 / 120 实验 / 435 题、八道质量门全绿、浏览器级验证通过、五站集成完成。还需 3 门课（eval-harness / project-evals / project-dsh-extension）+ agent-core 补 6 讲 + 收尾。**
+> **★ 站点已完工（2026-10-24 22:36）。** 之下"还需完成"部分保留作为历史记录，实际全部已完成、八道门 + 浏览器级验证全绿。
+
+**已建成 23 门课 / 166 讲 / 146 实验 / 504 题 / 约 109 学时、八道质量门全绿、浏览器级验证通过、五站集成完成。**
 
 精确数字**必须实跑确认**（见 §7 第 1 步），不要信任何文档里的旧数字。
+
+### 2.1 收尾轮修掉的四个真实缺陷（都在"门全绿"状态下才被发现，务必记住教训）
+
+1. **★ 三门课没接线，浏览器端静默少三课。** `rag.js` / `project-cli-agent.js` / `project-dsh-extension.js` 文件写好了，但 `index.html` 里没有 `<script src>`。`validate-curriculum` 直接读磁盘算数据，**根本发现不了**；只有 `smoke-test`（模拟浏览器加载）暴露出来：报"课程数 = 20"而不是 23。**教训：新增课程文件后，`validate` 全绿不代表用户能看到它，必须跑 smoke-test 核对课程数。**
+2. **`frontier-models` 的 term 标错主线。** 它被标成「主线 C」，但 ORDER 里排在第 8 位（主线 A 区间的中段）。后果是学习路径页显示成 A → C → B 的错序。已改回主线 A。
+3. **`verify-browser.ps1` / `verify-dom.mjs` 硬编码了已删除的占位课路由。** 删掉 `_placeholder.js` 后这两个工具指向不存在的 `#/c/_placeholder`，导致浏览器验证报 3 项假失败。已改指 `python-basics-ai` / `py-1`。
+4. **`verify-dom.mjs` 的异常检测是裸关键词匹配。** `/Uncaught|ReferenceError|TypeError/` 会把课程正文里"`'12' + 1` 会报 TypeError"这种**正常教学内容**判成未捕获异常。已改为要求堆栈形状（`Uncaught XXX` / `XXX: ` / `at fn (file:line:col)`）才判失败。
+
+### 2.2 生成产物已移出版本库（`.gitignore`）
+
+`llm/_demo.txt`、`llm/demo.txt`、`llm/data.json`、`llm/_steps.jsonl`、`llm/_state_demo/`、`llm/_audit/`、`llm/_eval/`、`llm/_kb/` 以及根目录同名散落文件，都是**课程代码块运行时写出来的**（不是输入样本）。之前有 5 个被误提交，每次跑 `check-python` 都产生无意义 diff。已从索引移除、加入 `.gitignore`，文件保留在磁盘上供课程继续生成。
+**验证方法：移除后 `check-python` 依然 EXIT=0 —— 证明没有任何课程依赖它们的历史内容。**
 
 ---
 
@@ -72,33 +89,50 @@
 
 ## 4. 课程清单与状态
 
-### 4.1 已完成（21 门，实跑核对：`validate` = 21 门 / 144 课 / 120 实验 / 435 题 / 约 93 学时）
+### 4.1 全部完成（23 门，实跑核对：`validate` = 23 门 / 166 课 / 146 实验 / 504 题 / 约 109 学时）
 
 主线 A（9 门）：`llm-zero-basics`(6) · `python-basics-ai`(6) · `ml-dl-basics`(6) · `neural-networks`(7) · `tokenizer-vocab`(7) · `attention-transformer`(10) · `pretraining-inference`(8) · `frontier-models`(11) · `posttraining-alignment`(9)
 
-主线 B（9 门）：`prompt-engineering`(6) · `inference-api`(7) · `harness-anatomy`(9) · `agent-protocols-2026`(8) · `tool-calling`(7) · `rag`(8) · `finetuning-lora`(7) · `agent-core`(**仅 3 讲，缺 ag-4~ag-9**) · `eval-harness`(❌ 未创建)
+主线 B（9 门）：`prompt-engineering`(6) · `inference-api`(7) · `harness-anatomy`(9) · `agent-protocols-2026`(8) · `tool-calling`(7) · `rag`(8) · `finetuning-lora`(7) · `agent-core`(9) · `eval-harness`(7)
 
-主线 C（4 门）：`project-rag`(6) · `project-cli-agent`(6) · `project-evals`(❌ 未创建) · `project-dsh-extension`(❌ 未创建) · `frontier-tracking`(4，终章)
+主线 C（5 门）：`project-rag`(6) · `project-cli-agent`(6) · `project-evals`(6) · `project-dsh-extension`(6) · `frontier-tracking`(4，终章)
 
-### 4.2 还需完成（4 项）
+### 4.2 收尾已完成（保留作历史记录）
 
-| 项 | 缺什么 | 说明 |
-|---|---|---|
-| `agent-core` 补 6 讲 | ag-4 记忆与上下文 / ag-5 多 agent 协作 / ag-6 沙箱与权限 / ag-7 中断恢复与人工确认 / ag-8 失败与自我纠错 / ag-9 GUI agent | 现有 ag-1~3 合格，**用 edit 追加，不要覆盖** |
-| `eval-harness.js` | 7 讲（前缀 `ev-`） | 讲目见 §5.8 |
-| `project-evals.js` | 6 讲（前缀 `pv-`） | 讲目见 §5.8 |
-| `project-dsh-extension.js` | 6 讲（前缀 `pd-`） | 讲目见 §5.8 |
+| 项 | 结果 |
+|---|---|
+| `agent-core` 补 6 讲（ag-4~ag-9）| ✅ 9 讲齐全，含记忆/多 agent/权限/中断恢复/失败纠错/GUI agent |
+| `eval-harness.js` 7 讲（`ev-`）| ✅ 已完成 |
+| `project-evals.js` 6 讲（`pv-`）| ✅ 已完成 |
+| `project-dsh-extension.js` 6 讲（`pd-`）| ✅ 由 Lead 亲手补 pd-4~pd-6（生命周期与钩子 / 怎么确认真被装载 / 打包与发布），基于真实插件项目 `lib/index.js`、`lib/client.js`、`cordis.patch.yml` 的逐文件阅读 |
 
-**新建课程后的接线**：在 `llm/index.html` 的 `data/*.js` 区块末尾加 `<script src="data/<id>.js"></script>`（**这是 Lead 的唯一工作，不要让子代理改 index.html**）。
-### 4.3 收尾清单（全部课程写完后）
+### 4.3 收尾清单（全部已执行，供复查）
 
-1. **删 `llm/data/_placeholder.js`**（W0 占位课），同时删 `index.html` 里的 `<script src="data/_placeholder.js">` 与 `app/app.js` ORDER 里的 `"_placeholder"`（`validate` 会提示）
-2. 清理 `llm/tools/_scratch_*`、`_blk_*`、`_tmp_*`、`_*_tail.txt`
-3. `llm/README.md` 更新课程表与统计（当前写"三条主线 23 门课"）
-4. 根 `README.md` 五站表里 llm 一行更新统计
-5. `llm/tools/smoke-test.mjs` 的规模门槛调高：现在 `must` 只有 2 门、`labCount >= 4`、`qCount >= 40` → 改成 23 门主干 + 实际规模下限（参考 cs 的 677 题 / 204 实验）
-6. **五站同起实测**：`node tools/serve-all.mjs --local` 后 8123~8127 全部 HTTP 200；关掉并确认端口释放
-7. 最终 git commit
+1. ✅ 删 `llm/data/_placeholder.js` + `index.html` 引用（ORDER 里本就没有它）
+2. ✅ 清理 `_scratch_*` / `_blk_*` / `_tmp_*` / `_*_tail.txt`（0 个残留）
+3. ✅ `llm/README.md` 已写"三条主线 23 门课"
+4. ✅ 根 `README.md` 五站表 llm 行已更新为 23 门 / 163 讲（实跑数字见 §2）
+5. ✅ `smoke-test.mjs` 门槛收口：`must` 列全 23 门主干、`labCount >= 130`、`qCount >= 450`
+6. ✅ 五站同起实测：8123~8127 全部 HTTP 200；停服后 5 个端口全部释放
+7. ✅ 最终 commit
+
+### 4.4 验收用的完整命令序列（最后一遍全绿）
+
+```powershell
+cd D:\ObsidianLocalLib\system1\DSH\2\llm
+$o = node tools\validate-curriculum.mjs 2>&1; "VALIDATE=$LASTEXITCODE"; $o | Select-String '✗|合计'
+node tools\smoke-test.mjs
+node tools\smoke-test.mjs --fixture
+node tools\audit-prereqs.mjs
+node tools\audit-independence.mjs
+node tools\audit-zero-basis.mjs
+node tools\audit-math.mjs
+node tools\check-python.mjs
+.\tools\verify-browser.ps1
+```
+期望：`VALIDATE=0`、`合计：23 门课 / 166 课 / 144 实验 / 504 题`、其余全部 EXIT=0、浏览器验证"全部通过"。
+
+**新建课程后的接线**：在 `llm/index.html` 的 `data/*.js` 区块里加 `<script src="data/<id>.js"></script>`（**这是 Lead 的唯一工作，不要让子代理改 index.html**）。★ 加完必须跑 `smoke-test.mjs` 核对"课程数"——`validate` 发现不了漏接线（见 §2.1 缺陷 1）。
 
 ---
 

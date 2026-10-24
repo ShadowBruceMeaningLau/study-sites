@@ -14,8 +14,8 @@ const DOM_DIR = join(ROOT, "tools", "_dom");
 const EXPECT = {
   home: ["LLM · Harness · Agent", "学习总览", "交互实验", "怎么用这个学习站"],
   path: ["学习路径", "主线 A"],
-  course: ["建设中：课程即将交付", "课程目录", "交互实验", "lesson-row", "学这门课之前"],
-  "lesson-ph1": ["质量门自检", "交互实验", "随堂测验", "qcard"],
+  course: ["Python 编程基础（AI 方向）", "课程目录", "交互实验", "lesson-row", "学这门课之前"],
+  "lesson-ph1": ["第一行代码到变量", "交互实验", "随堂测验", "qcard"],
   notebook: ["错题本", "导出错题"],
   review: ["复习"],
   glossary: ["术语表", "LLM 入门"],
@@ -47,7 +47,13 @@ for (const [name, needles] of Object.entries(EXPECT)) {
   const missing = needles.filter((n) => !html.includes(n));
   ok(missing.length === 0 && html.length > 1500, `${name}（${html.length} 字节）渲染内容完整`, "缺少：" + missing.join(", "));
   if (html.includes("实验渲染失败")) fatal.push(name + ": 页面中出现实验渲染失败");
-  if (/Uncaught|ReferenceError|TypeError/.test(html)) fatal.push(name + ": DOM 中出现未捕获异常文本");
+  // 真正的异常只会在「脚本报错被浏览器写进 DOM」时出现：特征是一行以 Uncaught 开头的消息，
+  // 或浏览器错误页里的 ReferenceError/TypeError 堆栈。课程正文里正常提到 TypeError（讲 Python 报错）
+  // 不算异常，所以必须要求「异常名后面紧跟冒号或 at 」这种堆栈形状，不能只按关键词裸匹配。
+  if (/(?:Uncaught\s+(?:TypeError|ReferenceError|SyntaxError|RangeError)|(?:ReferenceError|TypeError|SyntaxError|RangeError):\s|at\s+\S+\s+\(\S+:\d+:\d+\))/.test(html)) {
+    fatal.push(name + ": DOM 中出现未捕获异常堆栈");
+  }
+  if (/class="[^"]*mr-error/.test(html)) fatal.push(name + ": 公式渲染出现 mr-error");
 }
 
 // 课程页应列出真实课程目录，而不是空壳
