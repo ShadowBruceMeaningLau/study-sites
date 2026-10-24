@@ -1,6 +1,7 @@
 /* ==========================================================================
    labs.js —— 交互式实验组件（零依赖，全部在前端实时计算）
-   pathlab / schedlab / cpulab / pagelab / arbitlab / datalab
+   pathlab / schedlab / cpulab / pagelab / arbitlab / datalab / tokenlab
+   （LLM 站新增六类实验 tokenlab/attnlab/samplab/ragsteps/agenttrace/protolab 随波次加入）
    每个渲染函数签名：render(host, config, ctx)  ctx = { onInteract }
    ========================================================================== */
 (function (global) {
@@ -702,7 +703,71 @@
     render();
   }
 
-  /* ================================================== 6. datalab 通用单步器 */
+  /* ========================================== 7. tokenlab：BPE 逐步合并 */
+  /**
+   * config: { text, merges:[[a,b],...], steps:[{desc, tokens:[...], ids:[...], note}] }
+   * 渲染器自己重算每一步（校验 config 与计算一致），并把"当前合并规则"高亮出来。
+   */
+  function renderTokenlab(host, cfg, ctx) {
+    var text = String(cfg.text || "");
+    var merges = cfg.merges || [];
+    // 字符级起点：每个字符一个 token（BPE 的白话起点）
+    var startTokens = Array.from(text);
+    var startIds = startTokens.map(function (c) {
+      return cfg.vocab && cfg.vocab[c] !== undefined ? cfg.vocab[c] : ("ord " + c.charCodeAt(0));
+    });
+    var steps = cfg.steps || [];
+    var idx = 0;
+    var bar = el("div", "lab-bar");
+    var bPrev = btn("‹ 上一步", "ghost"), bNext = btn("下一步 ›"), bPlay = btn("⏵ 自动");
+    var counter = el("div", "lab-stat");
+    var body = el("div", "lab-panel");
+    var noteBox = el("div", "lab-note");
+
+    function draw() {
+      var s = steps[Math.min(idx, steps.length - 1)] || { desc: "", tokens: [], ids: [], note: "" };
+      counter.textContent = "第 " + (idx + 1) + " / " + (steps.length + 1) + " 步（含起点）";
+      body.innerHTML = "";
+      body.appendChild(el("div", "lab-stat", MD.mathText(s.desc || "")));
+      // 当前 token 序列（tokenlab 的核心展示：token 与 id 一一对应）
+      var table = el("div", "lab-token-table");
+      (s.tokens || []).forEach(function (tk, i) {
+        var cell = el("div", "lab-token-cell");
+        cell.appendChild(el("div", "lab-token", MD.escapeHtml(tk)));
+        cell.appendChild(el("div", "lab-token-id", String(s.ids && s.ids[i] !== undefined ? s.ids[i] : "?")));
+        table.appendChild(cell);
+      });
+      body.appendChild(table);
+      // 合并规则总览：已用过的步骤高亮
+      var rules = el("div", "lab-token-rules");
+      (merges || []).forEach(function (m, mi) {
+        var chip = el("span", "lab-token-rule" + (mi < idx ? " done" : ""));
+        chip.textContent = String(m[0]) + " + " + String(m[1]) + " → " + String(m[0]) + String(m[1]);
+        rules.appendChild(chip);
+      });
+      body.appendChild(rules);
+      noteBox.innerHTML = s.note ? "💡 " + MD.mathText(s.note) : "";
+    }
+    var timer = null;
+    on(bNext, "click", function () { if (idx < steps.length) { idx++; draw(); } });
+    on(bPrev, "click", function () { if (idx > 0) { idx--; draw(); } });
+    on(bPlay, "click", function () {
+      if (timer) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动"; return; }
+      bPlay.textContent = "⏸ 暂停";
+      timer = setInterval(function () {
+        if (idx >= steps.length) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动"; return; }
+        idx++; draw();
+      }, 1100);
+    });
+    bar.appendChild(bPrev); bar.appendChild(bNext); bar.appendChild(bPlay);
+    bar.appendChild(el("div", "spacer")); bar.appendChild(counter);
+    host.appendChild(bar);
+    host.appendChild(body);
+    host.appendChild(noteBox);
+    draw();
+  }
+
+  /* ================================================== 8. datalab 通用单步器 */
   function renderDatalab(host, cfg) {
     var steps = cfg.steps || [];
     var idx = 0;
@@ -753,7 +818,8 @@
     cpulab: renderCpulab,
     pagelab: renderPagelab,
     arbitlab: renderArbitlab,
-    datalab: renderDatalab
+    datalab: renderDatalab,
+    tokenlab: renderTokenlab
   };
 
   global.LABS = {

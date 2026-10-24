@@ -266,7 +266,7 @@ for (const src of scriptSrcs) {
 }
 ok(loaded.length === scriptSrcs.length, `全部 ${scriptSrcs.length} 个脚本执行成功`, errors.join("; "));
 ok(typeof sandbox.APP === "object" && sandbox.APP.courses.length > 0, "APP 已初始化，课程数 = " + (sandbox.APP && sandbox.APP.courses.length));
-ok(typeof sandbox.LABS === "object" && sandbox.LABS.types.length === 6, "LABS 渲染器注册：" + (sandbox.LABS ? sandbox.LABS.types.join(", ") : "无"));
+ok(typeof sandbox.LABS === "object" && sandbox.LABS.types.length >= 7, "LABS 渲染器注册：" + (sandbox.LABS ? sandbox.LABS.types.join(", ") : "无"));
 
 const courses = sandbox.APP.courses;
 const lessons = [];

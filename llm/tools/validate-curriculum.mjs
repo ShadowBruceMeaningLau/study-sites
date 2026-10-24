@@ -29,7 +29,7 @@ const isArr = (v) => Array.isArray(v);
 
 const CODE_LANGS = new Set(["c", "cpp", "python", "java", "js", "asm", "sql", "bash", "text"]);
 const BLOCK_TYPES = new Set(["concept", "steps", "analogy", "code", "pitfall", "calc", "interactive", "lab"]);
-const LABS = new Set(["pathlab", "schedlab", "cpulab", "pagelab", "arbitlab", "datalab"]);
+const LABS = new Set(["pathlab", "schedlab", "cpulab", "pagelab", "arbitlab", "datalab", "tokenlab"]);
 const QUIZ_TYPES = new Set(["single", "multi", "fill", "order"]);
 
 /** 中文可用字数（粗略）：不算标点与空白，用于判断解释是否敷衍 */
@@ -147,13 +147,28 @@ function checkInteractive(file, where, blk, courseId) {
         if (c.modes !== undefined && (!isArr(c.modes) || c.modes.length === 0)) err(file, where, "arbitlab.config.modes 必须是非空数组");
       }
       if (blk.lab === "datalab") {
-        if (!isArr(c.steps) || c.steps.length < 4) err(file, where, "datalab.config.steps 至少 4 步");
-        else
+        if (!isArr(c.steps) || c.steps.length < 4) err(file, where, "datalab.config.steps 至少 4 步");        else
           c.steps.forEach((s, i) => {
             if (!isObj(s) || !isNonEmptyStr(s.desc)) err(file, where, `datalab.steps[${i}] 需要 {desc, state}`);
             if (!isObj(s.state)) err(file, where, `datalab.steps[${i}].state 必须是对象`);
           });
         if (!isObj(c.state)) warn(file, where, "datalab.config.state 缺失（建议给出初始状态）");
+      }
+      if (blk.lab === "tokenlab") {
+        if (!isNonEmptyStr(c.text)) err(file, where, "tokenlab.config.text 必须是非空字符串");
+        if (!isArr(c.merges) || c.merges.length === 0) err(file, where, "tokenlab.config.merges 至少 1 条合并规则");
+        else
+          c.merges.forEach((m, i) => {
+            if (!isArr(m) || m.length !== 2 || !isNonEmptyStr(m[0]) || !isNonEmptyStr(m[1]))
+              err(file, where, `tokenlab.merges[${i}] 必须是 [左边, 右边] 两个非空字符串`);
+          });
+        if (!isArr(c.steps) || c.steps.length < 3) err(file, where, "tokenlab.config.steps 至少 3 步");
+        else
+          c.steps.forEach((s, i) => {
+            if (!isObj(s) || !isNonEmptyStr(s.desc)) err(file, where, `tokenlab.steps[${i}] 需要 {desc, tokens, ids, note}`);
+            if (!isArr(s.tokens) || !isArr(s.ids) || s.tokens.length !== s.ids.length)
+              err(file, where, `tokenlab.steps[${i}].tokens 与 .ids 必须等长数组`);
+          });
       }
       if (c.tasks !== undefined) {
         if (!isArr(c.tasks)) err(file, where, "interactive.config.tasks 必须是数组");
