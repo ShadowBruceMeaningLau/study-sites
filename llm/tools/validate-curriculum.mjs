@@ -384,6 +384,23 @@ function checkCourse(file, course, opts = {}) {
   if (!isArr(course.tags)) warn(file, where, "缺少 tags");
   if (!isArr(course.lessons) || course.lessons.length < 3) return err(file, where, "lessons 至少 3 课");
 
+  // 进阶包 advanced：app.js 按 texts/labs 列表 + project 段落 + criteria 渲染，
+  // criteria 允许字符串或字符串数组（app.js 会把数组渲染成清单），写错类型会静默渲染成 [object Object]。
+  if (course.advanced !== undefined) {
+    const adv = course.advanced;
+    if (!isObj(adv)) err(file, where, "advanced 必须是对象");
+    else {
+      ["texts", "labs"].forEach((k) => {
+        if (!isArr(adv[k]) || adv[k].length === 0) err(file, where, `advanced.${k} 必须是非空字符串数组`);
+        else adv[k].forEach((t, i) => { if (!isNonEmptyStr(t)) err(file, where, `advanced.${k}[${i}] 必须是非空字符串`); });
+      });
+      if (!isNonEmptyStr(adv.project)) err(file, where, "advanced.project 必须是非空字符串");
+      if (isStr(adv.criteria)) { if (!isNonEmptyStr(adv.criteria)) err(file, where, "advanced.criteria 不能为空"); }
+      else if (isArr(adv.criteria)) adv.criteria.forEach((t, i) => { if (!isNonEmptyStr(t)) err(file, where, `advanced.criteria[${i}] 必须是非空字符串`); });
+      else err(file, where, "advanced.criteria 必须是字符串或字符串数组");
+    }
+  }
+
   // 前缀一致性：课程内所有 lesson/quiz id 必须共用同一个短前缀
   const prefixes = {};
   course.lessons.forEach((l) => {

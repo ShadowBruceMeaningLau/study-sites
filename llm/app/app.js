@@ -824,10 +824,14 @@
           " <a class='chip accent' href='#/c/" + co.id + "'>进课程 →</a>" +
           (done ? " <span class='chip ok'>已通关</span>" : "") + "</h3>";
         if (adv) {
+          // criteria 允许写成字符串或字符串数组（数组渲染成清单，读起来更像验收项）
+          var critHtml = Array.isArray(adv.criteria)
+            ? "<ul>" + adv.criteria.map(function (t) { return "<li>" + MD.md(t) + "</li>"; }).join("") + "</ul>"
+            : "<p>" + MD.md(adv.criteria) + "</p>";
           html += "<div class='md'><b>📚 配书</b><ul>" + adv.texts.map(function (t) { return "<li>" + MD.md(t) + "</li>"; }).join("") + "</ul>" +
             "<b>🧪 招牌实验</b><ul>" + adv.labs.map(function (t) { return "<li>" + MD.md(t) + "</li>"; }).join("") + "</ul>" +
             "<b>🏗️ 从零实现</b><p>" + MD.md(adv.project) + "</p>" +
-            "<b>✅ 验收判据</b><p>" + MD.md(adv.criteria) + "</p></div>";
+            "<b>✅ 验收判据</b>" + critHtml + "</div>";
         } else {
           html += "<div class='note-line'>（本课暂未收录进阶包）</div>";
         }
