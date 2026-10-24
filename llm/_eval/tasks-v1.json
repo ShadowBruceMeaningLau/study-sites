@@ -1,0 +1,41 @@
+{
+  "version": "v1",
+  "tasks": [
+    {
+      "id": "c001",
+      "input": "合同A：金额 1200 元，2026-03-01 签订，签约方甲公司",
+      "judge": "fields",
+      "required": [
+        "amount",
+        "date",
+        "party"
+      ]
+    },
+    {
+      "id": "c002",
+      "input": "合同B：本合同不涉及金额，仅约定保密义务",
+      "judge": "any",
+      "expect_any": [
+        "未找到",
+        "没有找到",
+        "无"
+      ]
+    },
+    {
+      "id": "c003",
+      "input": "合同C：金额 1,234,567.89 元，日期 2026年4月1日，签约方乙公司",
+      "judge": "fields",
+      "required": [
+        "amount",
+        "date",
+        "party"
+      ]
+    },
+    {
+      "id": "c004",
+      "input": "合同D：金额待定，双方另行协商",
+      "judge": "manual",
+      "note": "有歧义，需人工判断是否算「未找到」"
+    }
+  ]
+}
