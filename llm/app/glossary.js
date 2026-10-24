@@ -80,8 +80,45 @@
         { t: "UHP（统一 Harness 协议）", en: "Unified Harness Protocol", d: "连接「产品」与「完整智能体执行框架」的开放协议（2026 年发布），约定任务、会话、流式与文件", where: "Agent 协议生态 2026 · 第 2 讲" },
         { t: "A2A / ACP / AG-UI", en: "A2A / ACP / AG-UI", d: "三个协作协议：A2A 连接智能体与智能体；ACP 连接编辑器与编码智能体；AG-UI 连接前端界面与智能体", where: "Agent 协议生态 2026 · 第 4~5 讲" },
         { t: "评测（eval / benchmark）", en: "evaluation", d: "用一组题目与打分规则系统测量模型/智能体的能力。没有评测就无法判断「改完是变好还是变坏」", where: "评测 Harness · 第 1 讲" },
-        { t: "沙箱（sandbox）", en: "sandbox", d: "隔离的执行环境，让智能体调用工具时不能随意破坏宿主系统", where: "Agent 核心 · 第 7 讲" }
+        { t: "沙箱（sandbox）", en: "sandbox", d: "隔离的执行环境，让智能体调用工具时不能随意破坏宿主系统", where: "Agent 核心 · 第 7 讲" },
+        { t: "MCP 工具服务器", en: "MCP server", d: "按 MCP 协议对外声明自己有哪些工具、接受调用并返回结果的独立进程。它不认识模型，只认结构化请求", where: "Agent 协议生态 2026 · 第 2 讲" },
+        { t: "RAG 切分（chunking）", en: "chunking", d: "把长文档切成适合检索的小块。切太大捞回无关内容、切太小丢掉上下文，是最需要手调的一步", where: "RAG · 第 2 讲" },
+        { t: "嵌入模型（embedding model）", en: "embedding model", d: "专门把文本变成向量的模型。它只做「文字 → 向量」这一件事，不生成答案", where: "RAG · 第 3 讲" },
+        { t: "重排（reranking）", en: "reranking", d: "先粗筛出一批候选，再用更精细的模型重新排序。比只做向量检索更准，代价是多一次模型调用", where: "RAG · 第 5 讲" },
+        { t: "工具 schema", en: "tool schema", d: "用结构化格式（通常是 JSON Schema）描述一个工具叫什么、参数有哪些、哪些必填、各自什么类型。模型据此决定怎么填参数", where: "工具调用 · 第 2 讲" },
+        { t: "评测数据集（eval set）", en: "eval set", d: "一组固定的输入与标准答案，用来反复测量能力。必须与训练数据严格分开，否则分数会虚高", where: "评测 Harness · 第 2 讲" },
+        { t: "LLM 当裁判（LLM as judge）", en: "LLM as judge", d: "用一个更强的模型给被测模型的回答打分。便宜且灵活，但要小心它自己的偏见与不稳定", where: "评测 Harness · 第 3 讲" },
+        { t: "Goodhart 定律", en: "Goodhart's law", d: "一个指标一旦变成目标，它就不再是好的指标。评测里表现为「为了刷分而优化，能力没真提升」", where: "评测 Harness · 第 6 讲" }
       ]
+    },
+    {
+      cat: "推理工程与部署",
+      items: [
+        { t: "流式输出（streaming）", en: "streaming", d: "服务边生成边把片段推给客户端，于是字是一个一个蹦出来的。协议上常用 SSE（Server-Sent Events）承载", where: "推理 API 与流式输出 · 第 3 讲" },
+        { t: "SSE（服务器发送事件）", en: "Server-Sent Events", d: "一种让服务端持续往客户端推数据的简单协议：每条消息以 data: 开头、空行结尾，比 WebSocket 更轻", where: "推理 API 与流式输出 · 第 4 讲" },
+        { t: "退避重试（backoff）", en: "exponential backoff", d: "请求失败后不立刻重试，而是等一小段、每次失败把等待时间翻倍，避免把已经过载的服务压垮", where: "推理 API 与流式输出 · 第 5 讲" },
+        { t: "限流（rate limit）", en: "rate limit", d: "服务端对单位时间内请求数或 token 数的上限。超了就返回 429，需要客户端学会放慢与排队", where: "推理 API 与流式输出 · 第 5 讲" },
+        { t: "prefill（预填充）", en: "prefill", d: "推理的第一阶段：把整段提示一次喂进模型、算好每层状态并缓存。算力受限，所以很快", where: "预训练与推理 · 第 7 讲" },
+        { t: "decode（解码）", en: "decode", d: "推理的第二阶段：每次只生成一个词元，把它接到末尾再预测下一个。带宽受限，所以慢", where: "预训练与推理 · 第 7 讲" },
+        { t: "KV cache（键值缓存）", en: "KV cache", d: "推理时把每层已算过的键与值存下来，下一步只算增量、不重算前面。它随上下文长度线性增长，是长上下文的第一道显存墙", where: "预训练与推理 · 第 6 讲" },
+        { t: "GQA（分组查询注意力）", en: "Grouped-Query Attention", d: "让多个查询头共享同一组键值头。KV 头数从 32 减到 8，KV cache 就只剩四分之一，是省显存最划算的改动之一", where: "注意力与 Transformer · 第 9 讲" }
+      ]
+    },
+    {
+      cat: "注意力与训练细节",
+      items: [
+        { t: "因果掩码（causal mask）", en: "causal mask", d: "把「当前位置之后」的分数改成负无穷，让每个位置只能看到自己和前面的内容。生成式模型必须靠它，否则就是训练时偷看答案", where: "注意力与 Transformer · 第 8 讲" },
+        { t: "层归一化（LayerNorm）", en: "layer normalization", d: "在单个位置内部对全部特征做标准化（均值 0、标准差 1），再乘可学习的缩放与偏移。让深层网络数值稳定", where: "注意力与 Transformer · 第 7 讲" },
+        { t: "残差连接（residual connection）", en: "residual connection", d: "把某一层的输入直接加回它的输出。给梯度留一条系数为 1 的直通通路，深层网络才训得起来", where: "注意力与 Transformer · 第 7 讲" },
+        { t: "位置编码（positional encoding）", en: "positional encoding", d: "给每个位置加一组能区分先后的数（正弦公式或可学习的向量），否则注意力对词序视而不见", where: "注意力与 Transformer · 第 6 讲" },
+        { t: "多头注意力（multi-head attention）", en: "multi-head attention", d: "并行做 h 份注意力、各自用不同投影，再把结果拼起来。必须满足 h × 每头维度 = 模型维度", where: "注意力与 Transformer · 第 4~5 讲" },
+        { t: "反向传播（backpropagation）", en: "backpropagation", d: "从损失出发、沿计算图从后往前一层层算出每个参数梯度的方法，核心是链式法则", where: "神经网络 · 第 5 讲" },
+        { t: "学习率（learning rate）", en: "learning rate", d: "每次更新参数走多远的那一步长度。太小收敛极慢，太大会发散，看损失曲线的形状就能判断", where: "神经网络 · 第 7 讲" },
+        { t: "批大小（batch size）", en: "batch size", d: "每更新一次参数用多少个样本来算梯度。批越大方向越稳、但一次要算更多样本", where: "神经网络 · 第 7 讲" },
+        { t: "BPE（字节对编码）", en: "Byte Pair Encoding", d: "一种分词算法：从每个字符一个词元开始，反复把出现频率最高的相邻对合并成新词元", where: "Tokenizer 与词表 · 第 3 讲" },
+        { t: "词表（vocabulary）", en: "vocabulary", d: "模型认识的全部词元及其编号。词表大小与序列长度是一对此消彼长的杠杆", where: "Tokenizer 与词表 · 第 2 讲" },
+        { t: "自回归（autoregressive）", en: "autoregressive", d: "每次生成一个词元、把它接到末尾再预测下一个的生成方式。因为依赖前文，所以只能逐词进行", where: "预训练与推理 · 第 4 讲" },
+        { t: "困惑度（perplexity）", en: "cross-entropy 的指数形式", d: "可理解为「模型在每个位置平均要在多少个候选里犹豫」。越低越好，是预训练最常用的指标", where: "预训练与推理 · 第 1 讲" }      ]
     }
   ];
 

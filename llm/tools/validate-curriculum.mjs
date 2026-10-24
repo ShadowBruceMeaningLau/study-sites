@@ -257,26 +257,26 @@ function checkInteractive(file, where, blk, courseId) {
           if (!kinds.has("finish")) warn(file, where, "agenttrace 没有 finish 步骤，读者不知道任务是否收敛");
         }
       }
-      if (blk.lab === "protoplab") {
-        if (!isArr(c.parties) || c.parties.length < 2) err(file, where, "protoplab.config.parties 至少 2 个角色");
+      if (blk.lab === "protolab") {
+        if (!isArr(c.parties) || c.parties.length < 2) err(file, where, "protolab.config.parties 至少 2 个角色");
         else {
           c.parties.forEach((p, i) => {
             if (!isObj(p) || !isNonEmptyStr(p.name) || !isNonEmptyStr(p.role))
-              err(file, where, `protoplab.parties[${i}] 需要 {name: 非空字符串, role: 非空字符串}`);
+              err(file, where, `protolab.parties[${i}] 需要 {name: 非空字符串, role: 非空字符串}`);
           });
           const names = new Set(c.parties.map((p) => (isObj(p) ? p.name : null)));
-          if (!isArr(c.links) || c.links.length < 1) err(file, where, "protoplab.config.links 至少 1 条连线");
+          if (!isArr(c.links) || c.links.length < 1) err(file, where, "protolab.config.links 至少 1 条连线");
           else
             c.links.forEach((l, i) => {
               if (!isObj(l) || !isNonEmptyStr(l.from) || !isNonEmptyStr(l.to) || !isNonEmptyStr(l.proto))
-                err(file, where, `protoplab.links[${i}] 需要 {from, to, proto: 非空字符串, desc}`);
+                err(file, where, `protolab.links[${i}] 需要 {from, to, proto: 非空字符串, desc}`);
               else {
-                if (!names.has(l.from)) err(file, where, `protoplab.links[${i}].from="${l.from}" 不在 parties 里`);
-                if (!names.has(l.to)) err(file, where, `protoplab.links[${i}].to="${l.to}" 不在 parties 里`);
+                if (!names.has(l.from)) err(file, where, `protolab.links[${i}].from="${l.from}" 不在 parties 里`);
+                if (!names.has(l.to)) err(file, where, `protolab.links[${i}].to="${l.to}" 不在 parties 里`);
               }
             });
-          if (!isArr(c.steps) || c.steps.length < 1) err(file, where, "protoplab.config.steps 至少 1 步");
-          else c.steps.forEach((s, i) => { if (!isObj(s) || !isNonEmptyStr(s.desc)) err(file, where, `protoplab.steps[${i}] 需要 {desc, note}`); });
+          if (!isArr(c.steps) || c.steps.length < 1) err(file, where, "protolab.config.steps 至少 1 步");
+          else c.steps.forEach((s, i) => { if (!isObj(s) || !isNonEmptyStr(s.desc)) err(file, where, `protolab.steps[${i}] 需要 {desc, note}`); });
         }
       }
       if (c.tasks !== undefined) {

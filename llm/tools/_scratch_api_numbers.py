@@ -95,6 +95,18 @@ print("\n只喂第一段：解析出", len(events), "个事件，剩余缓冲", 
 events, rest = parse_events(part1 + part2)
 print("喂完整两段：解析出", len(events), "个事件，剩余缓冲", repr(rest))
 
+# ---------- 6.5) 流式到达时间线（api-3 实验台的每一步） ----------
+TTFT = 0.6
+SPEED = 90.0
+print("\n流式时间线（首字 0.6 秒、decode 90 词元/秒）：")
+for t in (0.0, 0.6, 1.0, 2.0, 4.0, 6.29):
+    if t < TTFT:
+        got = 0
+    else:
+        got = int((t - TTFT) * SPEED)
+    print("  t =", t, "秒 → 已收到词元数", got, "（累计", round(min(got, 512) / 512 * 100, 1), "%）")
+print("  第 512 个词元到达时刻：", round(TTFT + 512 / SPEED, 2), "秒")
+
 # ---------- 7) 重试总数与放大效应 ----------
 print("\n每次请求最多重试 4 次，则最坏情况一次调用发出 5 个请求：", 1 + 4)
 print("并发 20 个客户端 × 5 个请求 = 服务端看到", 20 * 5, "个请求（雪崩的由来）")
