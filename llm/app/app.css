@@ -243,6 +243,40 @@ pre.code {
 .lab-note { font-size: 12.5px; color: var(--fg-faint); margin: 8px 0 0; }
 .lab-stat { font-family: var(--mono); font-size: 12.5px; color: var(--fg-dim); }
 .lab-panel { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.lab-stat.scene { color: var(--fg); margin-top: 10px; }
+
+/* attnlab 注意力权重热力图 */
+.lab-attn-cap { font-size: 12.5px; color: var(--fg-faint); margin: 10px 0 6px; }
+.lab-attn-grid { margin-top: 4px; }
+.lab-attn-row { display: flex; gap: 4px; margin-bottom: 4px; }
+.lab-attn-hcell {
+  min-width: 56px; flex: none; text-align: center; font-family: var(--mono);
+  font-size: 12px; color: var(--fg-dim); padding: 4px 2px; overflow: hidden; text-overflow: ellipsis;
+}
+.lab-attn-cell {
+  flex: 1; min-width: 46px; text-align: center; font-family: var(--mono);
+  font-size: 12px; padding: 4px 2px; border-radius: 4px;
+}
+.lab-attn-out { margin-top: 10px; font-family: var(--mono); font-size: 12.5px; color: var(--fg-dim); }
+
+/* samplab 采样策略 */
+.lab-samp-ctl { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 10px 0; }
+.lab-samp-slider { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--fg-dim); }
+.lab-samp-slider input[type="range"] { width: 108px; }
+.lab-samp-slabel { white-space: nowrap; }
+.lab-samp-sval { font-family: var(--mono); color: var(--fg); min-width: 30px; }
+.lab-samp-table { margin-top: 10px; }
+.lab-samp-row {
+  display: flex; gap: 6px; align-items: center; padding: 4px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.lab-samp-row.head { color: var(--fg-faint); font-size: 12px; border-bottom-color: var(--fg-faint); }
+.lab-samp-row.dim { opacity: .42; }
+.lab-samp-cell { flex: 1; font-family: var(--mono); font-size: 12.5px; color: var(--fg-dim); }
+.lab-samp-cell.tok { font-family: var(--sans); color: var(--fg); }
+.lab-samp-bar { background: var(--code-bg); border-radius: 4px; height: 10px; overflow: hidden; }
+.lab-samp-fill { background: linear-gradient(90deg, var(--ok), var(--accent)); height: 100%; }
+.lab-samp-pick { flex: none; font-size: 12px; color: var(--accent); white-space: nowrap; }
 
 .gantt { display: flex; flex-direction: column; gap: 4px; }
 .gantt-row { display: flex; align-items: center; gap: 8px; }

@@ -56,7 +56,7 @@ need: "建议先学「Python 编程基础」「机器学习与深度学习基础
 |---|---|
 | `tokenlab` | `{ text:"要被分词的文本", merges:[["a","b"],["ab","c"]], vocab:{"a":10,"b":11,"ab":12,"c":13}, steps:[{desc, tokens:[...], ids:[...], note}] }`——展示 BPE 逐步合并；steps 至少 4 步 |
 | `attnlab` | `{ seq:["词1","词2","词3"], d:2, Q:[[..],[..]], K:[[..],[..]], V:[[..],[..]], steps:[{desc, scores:[[..]], weights:[[..]], out:[[..]], note}] }`——注意力手算；steps 至少 4 步 |
-| `samplab` | `{ tokens:["A","B","C","D"], logits:[1.2,2.1,0.3,1.8], presets:[{name:"temperature=1", temp:1},...], steps:[{desc, params:{temp?,topk?,topp?}, dist:[..], note}] }`——真实 logits 上调采样旋钮看分布变化 |
+| `samplab` | `{ prompt:"可选的一句话提示", logits:[{token:"巴黎",logit:3.0},{token:"里昂",logit:1.5}], temperature:1, topK:0, topP:1, seed:20261024, steps:[{desc, temperature?, topK?, topP?, note}] }`——`logits` 至少 2 个候选词；`topK:0` 表示不限、`topP:1` 表示不截断；给了 `steps` 就能"上个场景 / 下个场景 / 自动播放"逐步演示；页面上的三个滑杆可以实时改温度、top-k、top-p，并显示"剪掉 / 保留 / 归一化后概率"与可复现的抽样结果（同一种子必然抽到同一个词） |
 | `ragsteps` | `{ query:"查询", docs:[{id, text}], chunkSize:120, emb:{doc1:[..],doc2:[..]}, steps:[{desc, stage:"chunk|embed|retrieve|prompt", data:"展示文本", note}] }`——切分→嵌入→检索→拼 prompt 分步演示 |
 | `agenttrace` | `{ task:"任务描述", steps:[{desc, kind:"thought|action|observation|finish", text, note}] }`——ReAct 轨迹回放，kind 必须合法 |
 | `protolab` | `{ scenario:"场景描述", parties:[{name, role}], links:[{from,to,proto,desc}], steps:[{desc, note}] }`——协议生态角色连线图 |

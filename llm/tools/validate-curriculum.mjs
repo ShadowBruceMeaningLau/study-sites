@@ -29,7 +29,7 @@ const isArr = (v) => Array.isArray(v);
 
 const CODE_LANGS = new Set(["c", "cpp", "python", "java", "js", "asm", "sql", "bash", "text"]);
 const BLOCK_TYPES = new Set(["concept", "steps", "analogy", "code", "pitfall", "calc", "interactive", "lab"]);
-const LABS = new Set(["pathlab", "schedlab", "cpulab", "pagelab", "arbitlab", "datalab", "tokenlab", "attnlab"]);
+const LABS = new Set(["pathlab", "schedlab", "cpulab", "pagelab", "arbitlab", "datalab", "tokenlab", "attnlab", "samplab"]);
 const QUIZ_TYPES = new Set(["single", "multi", "fill", "order"]);
 
 /** 中文可用字数（粗略）：不算标点与空白，用于判断解释是否敷衍 */
@@ -180,6 +180,30 @@ function checkInteractive(file, where, blk, courseId) {
             if (!isArr(s.weights)) err(file, where, `attnlab.steps[${i}].weights 必须是矩阵`);
             if (!isArr(s.out)) err(file, where, `attnlab.steps[${i}].out 必须是向量`);
           });
+      }
+      if (blk.lab === "samplab") {
+        if (!isArr(c.logits) || c.logits.length < 2) err(file, where, "samplab.config.logits 至少 2 个候选词");
+        else
+          c.logits.forEach((r, i) => {
+            if (!isObj(r) || !isNonEmptyStr(r.token) || typeof r.logit !== "number" || !Number.isFinite(r.logit))
+              err(file, where, `samplab.logits[${i}] 需要 {token: 非空字符串, logit: 有限数字}`);
+          });
+        for (const key of ["temperature", "topK", "topP"]) {
+          if (c[key] !== undefined && (typeof c[key] !== "number" || !Number.isFinite(c[key]) || c[key] < 0))
+            err(file, where, `samplab.config.${key} 必须是非负有限数字`);
+        }
+        if (c.temperature !== undefined && c.temperature === 0) warn(file, where, "samplab.config.temperature = 0 会退化成只看最大 logit，教学上建议 >= 0.1");
+        if (c.steps !== undefined) {
+          if (!isArr(c.steps) || c.steps.length === 0) err(file, where, "samplab.config.steps 必须是非空数组");
+          else
+            c.steps.forEach((s, i) => {
+              if (!isObj(s) || !isNonEmptyStr(s.desc)) err(file, where, `samplab.steps[${i}] 需要 {desc, temperature, topK, topP, note}`);
+              for (const key of ["temperature", "topK", "topP"]) {
+                if (s[key] !== undefined && (typeof s[key] !== "number" || !Number.isFinite(s[key])))
+                  err(file, where, `samplab.steps[${i}].${key} 必须是数字`);
+              }
+            });
+        }
       }
       if (c.tasks !== undefined) {
         if (!isArr(c.tasks)) err(file, where, "interactive.config.tasks 必须是数组");

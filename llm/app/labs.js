@@ -1,6 +1,6 @@
 /* ==========================================================================
    labs.js —— 交互式实验组件（零依赖，全部在前端实时计算）
-   pathlab / schedlab / cpulab / pagelab / arbitlab / datalab / tokenlab
+   pathlab / schedlab / cpulab / pagelab / arbitlab / datalab / tokenlab / attnlab / samplab
    （LLM 站新增六类实验 tokenlab/attnlab/samplab/ragsteps/agenttrace/protolab 随波次加入）
    每个渲染函数签名：render(host, config, ctx)  ctx = { onInteract }
    ========================================================================== */
@@ -909,6 +909,188 @@
     draw();
   }
 
+  /* ================================================== 10. samplab 采样策略 */
+  /* config = {
+       prompt?: string,
+       logits: [{ token: string, logit: number }, ...],   // 至少 2 条
+       temperature?: number, topK?: number, topP?: number, seed?: number,
+       steps?: [{ desc, temperature, topK, topP, note }]  // 预设场景，可省略
+     } */
+  function renderSamplab(host, cfg) {
+    var rows0 = cfg.logits || [];
+    var T = cfg.temperature == null ? 1 : num(cfg.temperature);
+    var K = cfg.topK == null ? 0 : num(cfg.topK);
+    var P = cfg.topP == null ? 1 : num(cfg.topP);
+    var seed = (cfg.seed == null ? 20261024 : num(cfg.seed)) >>> 0;
+    var drawCount = 0, lastPick = null;
+    var steps = cfg.steps || [], sIdx = 0, timer = null;
+
+    /* 说明：本组件里的“随机抽一个”用固定种子的线性同余发生器（LCG），
+       每次点“抽一次”就换一个种子——这样同一个种子必然抽出同一个结果，
+       方便你在课堂上复现“为什么这次抽到的是它”。 */
+    function rnd() { seed = (seed * 1103515245 + 12345) >>> 0; return seed / 4294967296; }
+
+    var wrap = el("div", "lab-samp");
+    if (cfg.prompt) wrap.appendChild(el("div", "lab-stat", MD.mathText(cfg.prompt)));
+
+    var ctl = el("div", "lab-samp-ctl");
+    function slider(label, min, max, step, val, onInput) {
+      var box = el("div", "lab-samp-slider");
+      box.appendChild(el("div", "lab-samp-slabel", label));
+      var input = document.createElement("input");
+      input.type = "range"; input.min = String(min); input.max = String(max);
+      input.step = String(step); input.value = String(val);
+      var out = el("span", "lab-samp-sval", String(val));
+      input.addEventListener("input", function () { out.textContent = input.value; onInput(num(input.value)); });
+      box.appendChild(input); box.appendChild(out);
+      return { box: box, input: input, out: out };
+    }
+    var sT = slider("温度 T（越低越保守）", 0.1, 3, 0.1, T, function (v) { T = v; draw(); });
+    var sK = slider("只留前 K 个（0=不限）", 0, rows0.length, 1, K, function (v) { K = v; draw(); });
+    var sP = slider("累计概率 p（top-p）", 0.05, 1, 0.05, P, function (v) { P = v; draw(); });
+    ctl.appendChild(sT.box); ctl.appendChild(sK.box); ctl.appendChild(sP.box);
+
+    var bDraw = btn("🎲 按当前设置抽一次"), bReset = btn("↺ 复位", "ghost");
+    var bPrev = btn("‹ 上个场景", "ghost"), bNext = btn("下个场景 ›", "ghost"), bPlay = btn("⏵ 自动播放");
+    ctl.appendChild(bDraw); ctl.appendChild(bReset);
+    if (steps.length) { ctl.appendChild(bPrev); ctl.appendChild(bNext); ctl.appendChild(bPlay); }
+    wrap.appendChild(ctl);
+
+    var result = el("div", "lab-stat");
+    var sceneBox = el("div", "lab-stat scene");
+    var table = el("div", "lab-samp-table");
+    var note = el("div", "lab-note");
+    wrap.appendChild(sceneBox);
+    wrap.appendChild(result);
+    wrap.appendChild(table);
+    wrap.appendChild(note);
+    host.appendChild(wrap);
+
+    function softmax(items, temp) {
+      var t = temp <= 0 ? 1e-6 : temp;
+      var mx = Math.max.apply(null, items.map(function (r) { return r.logit; }));
+      var ex = items.map(function (r) { return Math.exp((r.logit - mx) / t); });
+      var sum = ex.reduce(function (a, b) { return a + b; }, 0) || 1;
+      return ex.map(function (e) { return e / sum; });
+    }
+
+    function draw() {
+      var probs = softmax(rows0, T);
+      var order = rows0.map(function (r, i) { return i; })
+        .sort(function (a, b) { return probs[b] - probs[a]; });
+      var keep = {};
+      var lim = (K > 0 ? Math.min(K, order.length) : order.length);
+      order.slice(0, lim).forEach(function (i) { keep[i] = true; });
+      // top-p：从高到低累加，达到 p 就停（至少保留 1 个）
+      var acc = 0, used = 0;
+      for (var j = 0; j < order.length; j++) {
+        var i2 = order[j];
+        if (!keep[i2]) continue;
+        acc += probs[i2]; used++;
+        if (acc >= P) { break; }
+      }
+      var allowed = {};
+      order.slice(0, Math.max(1, used)).forEach(function (i3) { allowed[i3] = true; });
+      Object.keys(keep).forEach(function (k) { if (!allowed[k]) delete keep[k]; });
+
+      // 在保留集合内重新归一化
+      var mass = 0;
+      rows0.forEach(function (r, i) { if (keep[i]) mass += probs[i]; });
+      mass = mass || 1;
+      var finalP = rows0.map(function (r, i) { return keep[i] ? probs[i] / mass : 0; });
+
+      table.innerHTML = "";
+      var head = el("div", "lab-samp-row head");
+      ["候选词", "原始 logit", "÷T 后概率", "是否保留", "归一化后概率", ""].forEach(function (h) {
+        head.appendChild(el("div", "lab-samp-cell", h));
+      });
+      table.appendChild(head);
+      rows0.forEach(function (r, i) {
+        var tr = el("div", "lab-samp-row" + (keep[i] ? "" : " dim"));
+        tr.appendChild(el("div", "lab-samp-cell tok", MD.escapeHtml(r.token)));
+        tr.appendChild(el("div", "lab-samp-cell", fmt(r.logit)));
+        tr.appendChild(el("div", "lab-samp-cell", (probs[i] * 100).toFixed(1) + "%"));
+        tr.appendChild(el("div", "lab-samp-cell", keep[i] ? "✅ 保留" : "✂️ 剪掉"));
+        tr.appendChild(el("div", "lab-samp-cell", keep[i] ? (finalP[i] * 100).toFixed(1) + "%" : "0%"));
+        var barCell = el("div", "lab-samp-cell");
+        var barBox = el("div", "lab-samp-bar");
+        var fill = el("div", "lab-samp-fill");
+        fill.style.width = Math.round(finalP[i] * 100) + "%";
+        barBox.appendChild(fill);
+        barCell.appendChild(barBox);
+        tr.appendChild(barCell);
+        if (lastPick === i) tr.appendChild(el("div", "lab-samp-pick", "← 刚抽到"));
+        table.appendChild(tr);
+      });
+      result.innerHTML = MD.mathText(
+        "当前设置：T = " + T + "，top-k = " + (K > 0 ? K : "不限") + "，top-p = " + P +
+        "；还有 " + Object.keys(keep).length + " 个候选词有非零概率（原始共 " + rows0.length + " 个）。"
+      );
+      note.innerHTML = steps.length && steps[sIdx] && steps[sIdx].note ? "💡 " + MD.mathText(steps[sIdx].note) : "";
+    }
+
+    function applyScene(i) {
+      var s = steps[Math.max(0, Math.min(i, steps.length - 1))];
+      if (!s) return;
+      sIdx = Math.max(0, Math.min(i, steps.length - 1));
+      if (s.temperature != null) { T = num(s.temperature); sT.input.value = String(T); sT.out.textContent = String(T); }
+      if (s.topK != null) { K = num(s.topK); sK.input.value = String(K); sK.out.textContent = String(K); }
+      if (s.topP != null) { P = num(s.topP); sP.input.value = String(P); sP.out.textContent = String(P); }
+      lastPick = null;
+      sceneBox.innerHTML = s.desc ? MD.mathText(s.desc) : "";
+      draw();
+    }
+
+    on(bDraw, "click", function () {
+      var probs = softmax(rows0, T);
+      var order = rows0.map(function (r, i) { return i; }).sort(function (a, b) { return probs[b] - probs[a]; });
+      var keep = {}, lim = K > 0 ? Math.min(K, order.length) : order.length;
+      order.slice(0, lim).forEach(function (i) { keep[i] = true; });
+      var mass = 0;
+      rows0.forEach(function (r, i) { if (keep[i]) mass += probs[i]; });
+      mass = mass || 1;
+      var u = rnd() * mass, acc = 0, pick = order[0];
+      // 按概率从高到低累加，累计值第一次越过 u 的那个候选词就是本次抽到的词
+      for (var j = 0; j < order.length; j++) {
+        var i4 = order[j];
+        if (!keep[i4]) continue;
+        acc += probs[i4];
+        pick = i4;
+        if (acc >= u) break;
+      }
+      lastPick = pick;
+      drawCount++;
+      result.innerHTML = MD.mathText(
+        "第 " + drawCount + " 次抽样（种子 " + (seed >>> 0) + "）抽到：" +
+        "「" + MD.escapeHtml(rows0[pick].token) + "」"
+      );
+      draw();
+    });
+    on(bReset, "click", function () {
+      T = cfg.temperature == null ? 1 : num(cfg.temperature);
+      K = cfg.topK == null ? 0 : num(cfg.topK);
+      P = cfg.topP == null ? 1 : num(cfg.topP);
+      sT.input.value = String(T); sT.out.textContent = String(T);
+      sK.input.value = String(K); sK.out.textContent = String(K);
+      sP.input.value = String(P); sP.out.textContent = String(P);
+      lastPick = null; drawCount = 0;
+      draw();
+    });
+    if (steps.length) {
+      on(bPrev, "click", function () { applyScene(sIdx - 1); });
+      on(bNext, "click", function () { applyScene(sIdx + 1); });
+      on(bPlay, "click", function () {
+        if (timer) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动播放"; return; }
+        bPlay.textContent = "⏸ 暂停";
+        timer = setInterval(function () {
+          if (sIdx >= steps.length - 1) { clearInterval(timer); timer = null; bPlay.textContent = "⏵ 自动播放"; return; }
+          applyScene(sIdx + 1);
+        }, 1600);
+      });
+    }
+    draw();
+  }
+
   /* ------------------------------------------------------------ 导出 */
   var RENDERERS = {
     pathlab: renderPathlab,
@@ -918,7 +1100,8 @@
     arbitlab: renderArbitlab,
     datalab: renderDatalab,
     tokenlab: renderTokenlab,
-    attnlab: renderAttnlab
+    attnlab: renderAttnlab,
+    samplab: renderSamplab
   };
 
   global.LABS = {
