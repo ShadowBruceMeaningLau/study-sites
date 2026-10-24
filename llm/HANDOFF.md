@@ -3,7 +3,7 @@
 > **读这一份就够了。** 本文件自包含：不需要了解之前任何会话的历史。
 > 上下文被压缩、或换新会话/新模型接手时，从 §1 顺序读，照 §7 执行即可。
 >
-> 最后更新：2026-10-24 21:25（UTC+8）
+> 最后更新：2026-10-24 21:42（UTC+8）
 
 ---
 
@@ -26,7 +26,7 @@
 
 ## 2. 当前进度
 
-**已建成 19 门课 / 130 讲 / 109 实验 / 393 题、八道质量门全绿、浏览器级验证通过、五站集成完成。还需 4 门课 + 收尾。**
+**已建成 21 门课 / 144 讲 / 120 实验 / 435 题、八道质量门全绿、浏览器级验证通过、五站集成完成。还需 3 门课（eval-harness / project-evals / project-dsh-extension）+ agent-core 补 6 讲 + 收尾。**
 
 精确数字**必须实跑确认**（见 §7 第 1 步），不要信任何文档里的旧数字。
 
@@ -72,46 +72,24 @@
 
 ## 4. 课程清单与状态
 
-### 4.1 已完成（19 门，实跑核对；`validate` 合计 19 门 / 130 课 / 109 实验 / 393 题）
+### 4.1 已完成（21 门，实跑核对：`validate` = 21 门 / 144 课 / 120 实验 / 435 题 / 约 93 学时）
 
-| # | 文件 | id | 讲数 | 课程名 |
-|---|---|---|---|---|
-| 1 | `llm-zero-basics.js` | `llm-zero-basics` | 6 | LLM 零基础入门 |
-| 2 | `python-basics-ai.js` | `python-basics-ai` | 6 | Python 编程基础（AI 方向） |
-| 3 | `ml-dl-basics.js` | `ml-dl-basics` | 6 | 机器学习与深度学习基础 |
-| 4 | `neural-networks.js` | `neural-networks` | 7 | 神经网络 |
-| 5 | `tokenizer-vocab.js` | `tokenizer-vocab` | 7 | Tokenizer 与词表 |
-| 6 | `attention-transformer.js` | `attention-transformer` | 10 | 注意力与 Transformer |
-| 7 | `pretraining-inference.js` | `pretraining-inference` | 8 | 预训练与推理 |
-| 8 | `frontier-models.js` | `frontier-models` | 11 | 模型前沿专题（2026-10） |
-| 9 | `posttraining-alignment.js` | `posttraining-alignment` | 9 | 后训练与对齐前沿 |
-| 10 | `prompt-engineering.js` | `prompt-engineering` | 6 | 提示词工程 |
-| 11 | `inference-api.js` | `inference-api` | 7 | 推理 API 与流式输出 |
-| 12 | `harness-anatomy.js` | `harness-anatomy` | 9 | Harness 解剖 |
-| 13 | `agent-protocols-2026.js` | `agent-protocols-2026` | 8 | Agent 协议生态（2026-10） |
-| 14 | `project-rag.js` | `project-rag` | 6 | 项目 1：本地 RAG 问答助手 |
-| 15 | `tool-calling.js` | `tool-calling` | 7 | 工具调用 |
-| 16 | `finetuning-lora.js` | `finetuning-lora` | 7 | 微调入门：从全量到 LoRA |
-| 17 | `rag.js` | `rag` | 见文件 | RAG（子代理在写） |
-| 18 | `agent-core.js` | `agent-core` | 见文件 | Agent 核心（子代理在写） |
+主线 A（9 门）：`llm-zero-basics`(6) · `python-basics-ai`(6) · `ml-dl-basics`(6) · `neural-networks`(7) · `tokenizer-vocab`(7) · `attention-transformer`(10) · `pretraining-inference`(8) · `frontier-models`(11) · `posttraining-alignment`(9)
 
-> **接手第一件事仍是按 §7 第 1 步核对真实状态**——可能有并行子代理仍在写入新文件。
+主线 B（9 门）：`prompt-engineering`(6) · `inference-api`(7) · `harness-anatomy`(9) · `agent-protocols-2026`(8) · `tool-calling`(7) · `rag`(8) · `finetuning-lora`(7) · `agent-core`(**仅 3 讲，缺 ag-4~ag-9**) · `eval-harness`(❌ 未创建)
 
-### 4.2 还需新建
+主线 C（4 门）：`project-rag`(6) · `project-cli-agent`(6) · `project-evals`(❌ 未创建) · `project-dsh-extension`(❌ 未创建) · `frontier-tracking`(4，终章)
 
-按 `llm/AUTHOR-BRIEF.md` §1/§2 的 id、讲目与元信息。**全部 id 已登记在 `app/app.js` 的 ORDER 里**；新建文件后要在 `llm/index.html` 加一行 `<script src="data/<id>.js"></script>`。
+### 4.2 还需完成（4 项）
 
-| # | id | icon | 讲数 | 内容要点 |
-|---|---|---|---|---|
-| 15 | `rag` | 📚 | 8 | 切分 / 嵌入与余弦 / 检索 / 重排 / 拼提示与引用 / 评测 / 失败模式（用 `ragsteps`） |
-| 16 | `finetuning-lora` | 🎚️ | 7（现有 3，需续写 4） | SFT 数据 / 显存账 / LoRA / QLoRA / 合回与评测 / 选型 |
-| 17 | `agent-core` | 🤖 | 9 | ReAct / 规划 / 记忆 / 多 agent / 沙箱 / 中断恢复 / 自纠 / GUI agent |
-| 18 | `eval-harness` | 📏 | 7 | 基准 / 数据集 / 打分器 / 回归 / 长程评测 / Goodhart / CI 门禁 |
-| 19 | `project-cli-agent` | ⌨️ | 6 | CLI agent 项目（目标 / 工具集与权限 / 循环 / 确认恢复 / 日志 / 打包） |
-| 20 | `project-evals` | ✅ | 6 | 给自己 agent 写评测（指标 / 任务集 / 打分器 / 回归 / 自查 / CI） |
-| 21 | `project-dsh-extension` | 🧩 | 6 | DSH 扩展（插件 / 技能 / 工具 / 生命周期 / 打包）；以本机 DSH 实现为准 |
-| 22 | `frontier-tracking` | 🧭 | 4 | 读论文 / 复现 / 参与开源 / 长期路线图（终章） |
+| 项 | 缺什么 | 说明 |
+|---|---|---|
+| `agent-core` 补 6 讲 | ag-4 记忆与上下文 / ag-5 多 agent 协作 / ag-6 沙箱与权限 / ag-7 中断恢复与人工确认 / ag-8 失败与自我纠错 / ag-9 GUI agent | 现有 ag-1~3 合格，**用 edit 追加，不要覆盖** |
+| `eval-harness.js` | 7 讲（前缀 `ev-`） | 讲目见 §5.8 |
+| `project-evals.js` | 6 讲（前缀 `pv-`） | 讲目见 §5.8 |
+| `project-dsh-extension.js` | 6 讲（前缀 `pd-`） | 讲目见 §5.8 |
 
+**新建课程后的接线**：在 `llm/index.html` 的 `data/*.js` 区块末尾加 `<script src="data/<id>.js"></script>`（**这是 Lead 的唯一工作，不要让子代理改 index.html**）。
 ### 4.3 收尾清单（全部课程写完后）
 
 1. **删 `llm/data/_placeholder.js`**（W0 占位课），同时删 `index.html` 里的 `<script src="data/_placeholder.js">` 与 `app/app.js` ORDER 里的 `"_placeholder"`（`validate` 会提示）
@@ -237,6 +215,22 @@ window.COURSE_PACKS.push({
 
 ---
 
+### 5.8 剩余四门课的讲目（照这个写）
+
+**`agent-core` 补 6 讲**（先 `Select-String -Path data\agent-core.js -Pattern 'id:\s*"ag-\d+"'` 确认现有 ag-1~3，再 edit 追加）：
+- ag-4 记忆与上下文管理（滑动窗口 / 摘要 / 检索三策略；硬约束不参与压缩）
+- ag-5 多 agent 协作（串联失败放大 0.95^5≈77.4% / 并行 Amdahl 加速 / 用 `protolab`）
+- ag-6 沙箱与权限（文件/执行/网络三条边界；执行类会架空路径白名单）
+- ag-7 中断恢复与人工确认（可恢复检查点 vs 强制确认点；幂等键）
+- ag-8 失败与自我纠错（四种失败模式：空响应 / 参数乱填 / 打转 / 谎称完成；提示级 vs 结构级纠错）
+- ag-9 浏览器与 GUI agent（感知/决策/验证三层，验证层最难；有 API 就别用 GUI）
+
+**`eval-harness`（7 讲，前缀 `ev-`）**：ev-1 没有评测就没有进步 / ev-2 基准与数据集 / ev-3 打分器（精确匹配 / 相似度 / 模型当裁判）/ ev-4 回归评测与版本对比 / ev-5 长程任务怎么评 / ev-6 评测作弊与 Goodhart / ev-7 接进 CI 门禁
+
+**`project-evals`（6 讲，前缀 `pv-`）**：pv-1 给自家 agent 定指标 / pv-2 造一组真实任务 / pv-3 打分器与一条命令出报告 / pv-4 跑回归与历史对比 / pv-5 评测作弊自查 / pv-6 做成 CI 门禁
+
+**`project-dsh-extension`（6 讲，前缀 `pd-`）**：pd-1 扩展点在哪（插件/技能/工具/命令四个层次）/ pd-2 写最小插件 / pd-3 加自定义工具或技能 / pd-4 生命周期与钩子 / pd-5 调试（怎么确认真被装载）/ pd-6 打包与发布
+> ★ `project-dsh-extension` 的样本是 `D:\DeepseekHarness\DeepseekHarness_Project\1.deepseek_harness本地访问`（真实插件项目：`package.json` 的 `dsh.bundle`/`dsh.client`、`lib/index.js`、`lib/client.js`、`cordis.patch.yml`）。**只写你亲自读到的事实，课程正文不得出现本机路径。**
 ## 6. 质量门（每次改完必跑，全部 exit=0 才算过）
 
 ### 6.1 八道门
@@ -342,6 +336,32 @@ git log --oneline -5
 ### 9.2 `protoplab` 是文档笔误
 `CONTENT-SPEC.md §3` 曾写 `protoplab`，但 `validate` 的 `LABS` 与 `app/labs.js` 的 `RENDERERS` 都是 **`protolab`**。照文档写会报 4 处错。**已修校验器 9 处。**
 
+### 9.4 ★子代理失败的真正原因与可恢复性（本次会话实测，重要）
+
+**结论：子代理"离线"不是连接坏了，是上下文/输出预算与并发冲突造成的。**
+
+| 通知措辞 | 真实原因 | 可恢复 |
+|---|---|---|
+| `ran out of room before it finished` | 单次输出预算耗尽（写的文件太大，如一门 40KB 课） | ❌ 只能新开一个接手同一文件 |
+| `failed before it finished. It left no closing message` | 运行期错误（工具异常 / 写冲突） | ❌ 该 session 已终结 |
+| `finished and will do no further work` | 正常完成，只是 inactive | ⚠️ `send_message` 能发但**不保证**其 provider 可用 |
+
+**实测证据**：
+- 极小任务（2 次工具调用）的子代理**每次都成功**（如探测返回 `PROBE-ALIVE-1`）
+- 大任务（写整门 40KB 课）的子代理**几乎必然 `ran out of room`**
+- 早期 `spawn_teammate` 的 `course-author-N` 绑旧 provider（`deepseek-ai/*`、`dmodel`），发消息毫无反应
+
+**有效做法（已验证）**：
+1. **一次只让它写 2~3 讲**，明确要求「先落盘 → 跑门禁 → 报告」
+2. **一个文件只派一个人**，派发时写清 `write_scopes`
+3. 派发前查文件是否已存在、最近是否被改（见 §9.1 规则 2）
+4. 接收交付**不要只信退出码**：先 `node --check`、数讲号、比对字节数、看关键数字是否还在
+5. **git 是你的安全网**：给它一个基线提交，被覆盖就 `git checkout <commit> -- <file>` 恢复（本次真实用到：子代理用 3 讲版覆盖了 tool-calling 的 7 讲版，靠 `git checkout 12c6926 -- llm/data/tool-calling.js` 恢复）
+
+**已发生的三次并发事故（记下来避免再犯）**：
+- `agent-core.js`：两个子代理各写一套 ag-4~ag-9 → 24 条重复 id 报错
+- `rag.js`：两个进程同时写
+- `tool-calling.js`：子代理用 3 讲版**覆盖**了 7 讲完整版（43508B ← 86963B），已从 git 恢复
 ### 9.3 其它
 - `_placeholder.js` 还在，收尾时要删（连同 index.html 与 ORDER 里的引用）
 - `ORDER` 里 id 拼错会让课程**静默排到最后**——`validate` 现在有 ORDER 一致性检查能查出

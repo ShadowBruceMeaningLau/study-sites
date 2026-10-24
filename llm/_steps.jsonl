@@ -1,6 +1,6 @@
-{"ts": 1792849240.5584488, "kind": "call", "step": 1, "payload": {"tool": "read_file", "args": "a.txt"}}
-{"ts": 1792849240.5591204, "kind": "result", "step": 1, "payload": {"ok": true, "chars": 120}}
-{"ts": 1792849240.5596485, "kind": "call", "step": 2, "payload": {"tool": "read_file", "args": "a.txt"}}
-{"ts": 1792849240.5600693, "kind": "result", "step": 2, "payload": {"ok": true, "chars": 120}}
-{"ts": 1792849240.5606382, "kind": "call", "step": 3, "payload": {"tool": "write_file", "args": "report.md"}}
-{"ts": 1792849240.572308, "kind": "result", "step": 3, "payload": {"ok": true, "bytes": 210}}
+{"ts": 1792849803.3463926, "kind": "call", "step": 1, "payload": {"tool": "read_file", "args": "a.txt"}}
+{"ts": 1792849803.3469107, "kind": "result", "step": 1, "payload": {"ok": true, "chars": 120}}
+{"ts": 1792849803.3478904, "kind": "call", "step": 2, "payload": {"tool": "read_file", "args": "a.txt"}}
+{"ts": 1792849803.348335, "kind": "result", "step": 2, "payload": {"ok": true, "chars": 120}}
+{"ts": 1792849803.3486617, "kind": "call", "step": 3, "payload": {"tool": "write_file", "args": "report.md"}}
+{"ts": 1792849803.3617263, "kind": "result", "step": 3, "payload": {"ok": true, "bytes": 210}}
