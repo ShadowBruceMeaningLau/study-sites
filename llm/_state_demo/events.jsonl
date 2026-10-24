@@ -46,4 +46,22 @@
 {"ts": 1.0, "kind": "broken{"ts": 1792846809.1254823, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
 {"ts": 1792846809.1259413, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
 {"ts": 1792846809.1263041, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792847159.5079703, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792847159.5085447, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792847159.509013, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792847205.0874286, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792847205.0879364, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792847205.0882509, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792847234.8097086, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792847234.810007, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792847234.810453, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792847417.4978275, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792847417.4981835, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792847417.4984972, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792847505.298946, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792847505.2994032, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792847505.2997851, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792847624.650297, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792847624.6505828, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792847624.650959, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
 {"ts": 1.0, "kind": "broken
