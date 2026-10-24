@@ -9,7 +9,7 @@
 
 ## 1. 一句话现状
 
-`llm/` 站点已建成 **23 门课 / 166 讲 / 146 实验 / 504 题**，九道质量门全绿，浏览器级验证通过，五站（8123~8127）全部 HTTP 200。
+`llm/` 站点已建成 **24 门课 / 182 讲 / 162 实验 / 552 题**，九道质量门全绿，浏览器级验证通过，五站（8123~8127）全部 HTTP 200。
 
 **但严格审计后发现两类问题**，本专项就是修它们：
 
@@ -129,14 +129,14 @@ config 契约（详细字段见 CONTENT-SPEC §3）：
 | # | 子系统 | 文件 | 内容 | 状态 |
 |---|---|---|---|---|
 | 0 | 基础设施 | `HANDOFF-NEXT.md`、`CONTENT-SPEC.md` 笔误、基线提交 | 交接文档 + 修 `protoplab` | ✅ 已完成 |
-| 1 | 事实修正 + 协议深化 | `data/agent-protocols-2026.js` | 修 L587/L1024 的 UHP 过期表述 + 改配套测验题 + **新增 proto-9 讲**（UHP 报文级契约） | ⬜ 待做 |
-| 2 | ★ 安全门课（新建） | `data/agent-security.js` | 7 讲，前缀 `sec-`，见 §4.1 | ⬜ 待做 |
-| 3 | 原理链补讲 | `neural-networks.js` + `pretraining-inference.js` | `nn-8` 梯度消失/爆炸与归一化；`pre-9` 分布式训练 | ⬜ 待做 |
-| 4 | 前沿可用性 | `eval-harness.js` + `agent-core.js` | `ev-8` 业界公开基准与榜单解读；`ag-10` 子代理与任务委派 | ⬜ 待做 |
-| 5 | 检索与工具 | `rag.js` + `tool-calling.js` | `rag-9` 检索进阶（查询改写/混合检索/GraphRAG/向量库选型）；`tool-8` 工具规模化 | ⬜ 待做 |
-| 6 | 偏好微调 | `posttraining-alignment.js` + `finetuning-lora.js` | `pt-10` DPO 与偏好优化；`ft-8` 偏好微调上手 | ⬜ 待做 |
-| 7 | 接线（**Lead 独占，绝不派发**） | `index.html` / `app/app.js` / `smoke-test.mjs` / `glossary.js` / README | 新课程接线、ORDER、门槛上调、术语补充、统计更新 | ⬜ 待做 |
-| 8 | 最终验收 | — | 九道门 + 浏览器验证 + 专项验收 + 提交 | ⬜ 待做 |
+| 1 | 事实修正 + 协议深化 | `data/agent-protocols-2026.js` | 修 L587/L1024 的 UHP 过期表述 + 改配套测验题 + **新增 proto-9 讲**（UHP 报文级契约） | ✅ 已完成 |
+| 2 | ★ 安全门课（新建） | `data/agent-security.js` | 7 讲，前缀 `sec-`，见 §4.1 | ✅ 已完成 |
+| 3 | 原理链补讲 | `neural-networks.js` + `pretraining-inference.js` | `nn-8` 梯度消失/爆炸与归一化；`pre-9` 分布式训练 | ✅ 已完成 |
+| 4 | 前沿可用性 | `eval-harness.js` + `agent-core.js` | `ev-8` 业界公开基准与榜单解读；`ag-10` 子代理与任务委派 | ✅ 已完成 |
+| 5 | 检索与工具 | `rag.js` + `tool-calling.js` | `rag-9` 检索进阶（查询改写/混合检索/GraphRAG/向量库选型）；`tool-8` 工具规模化 | ✅ 已完成 |
+| 6 | 偏好微调 | `posttraining-alignment.js` + `finetuning-lora.js` | `pt-10` DPO 与偏好优化；`ft-8` 偏好微调上手 | ✅ 已完成 |
+| 7 | 接线（**Lead 独占，绝不派发**） | `index.html` / `app/app.js` / `smoke-test.mjs` / `glossary.js` / README | 新课程接线、ORDER、门槛上调、术语补充、统计更新 | ✅ 已完成 |
+| 8 | 最终验收 | — | 九道门 + 浏览器验证 + 专项验收 + 提交 | ✅ 已完成 |
 
 ### 4.1 子系统 2 的详细讲目（`agent-security`，前缀 `sec-`）
 
@@ -264,7 +264,7 @@ $o = node tools\validate-curriculum.mjs 2>&1; "EXIT=$LASTEXITCODE"; $o | Select-
 ```powershell
 cd D:\ObsidianLocalLib\system1\DSH\2\llm
 $o = node tools\validate-curriculum.mjs 2>&1; "VALIDATE=$LASTEXITCODE"; $o | Select-String '合计|✗'
-# 期望：24 门课 / ~174 讲 / ~155 实验 / ~525 题
+# 期望：24 门课 / 182 讲 / 162 实验 / 552 题
 # 其余八道门全部 EXIT=0
 .\tools\verify-browser.ps1    # 期望「浏览器级验证全部通过」
 ```

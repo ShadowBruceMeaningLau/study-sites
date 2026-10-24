@@ -476,7 +476,7 @@ if (FIXTURE) {
     "frontier-models", "posttraining-alignment",
     "prompt-engineering", "inference-api", "harness-anatomy",
     "agent-protocols-2026", "tool-calling", "rag", "finetuning-lora",
-    "agent-core", "eval-harness",
+    "agent-core", "eval-harness", "agent-security",
     "project-rag", "project-cli-agent", "project-evals", "project-dsh-extension",
     "frontier-tracking"
   ];
@@ -484,10 +484,10 @@ if (FIXTURE) {
   ok(missing.length === 0, "培养方案主干课程齐全（" + courses.length + " 门 / 应含 " + must.length + " 门主干）", "缺：" + missing.join(", "));
   const labCount = lessons.reduce((n, x) => n + (x.l.blocks || []).filter((b) => b.type === "interactive").length, 0);
   // W7 收口门槛：与 cs 站（204 个实验）同数量级。
-  ok(labCount >= 130, "交互实验总数 = " + labCount);
+  ok(labCount >= 150, "交互实验总数 = " + labCount);
   const qCount = lessons.reduce((n, x) => n + (x.l.quiz || []).length, 0);
   // W7 收口门槛：与 cs 站（677 题）同数量级。
-  ok(qCount >= 450, "测验题总数 = " + qCount);
+  ok(qCount >= 520, "测验题总数 = " + qCount);
   const dup = {};
   let dupN = 0;
   lessons.forEach(({ l }) => {
