@@ -113,3 +113,38 @@
 {"ts": 1792849803.453, "event": "call", "step": 2, "tool": "query_db", "args": {"dsn": "postgres://u:p@h/db", "password": "***"}}
 {"ts": 1792849803.453, "event": "error", "step": 2, "msg": "connect failed: postgres://u:p@h/db"}
 {"ts": 1792849803.453, "event": "call", "step": 3, "tool": "read_file", "args": {"path": "big.log", "content": "***"}}
+{"ts": 1792849849.07, "event": "call", "step": 1, "tool": "read_file", "args": {"path": "a.txt"}, "token": "***"}
+{"ts": 1792849849.071, "event": "result", "step": 1, "ok": true, "chars": 120}
+{"ts": 1792849849.071, "event": "call", "step": 2, "tool": "query_db", "args": {"dsn": "postgres://u:p@h/db", "password": "***"}}
+{"ts": 1792849849.072, "event": "error", "step": 2, "msg": "connect failed: postgres://u:p@h/db"}
+{"ts": 1792849849.072, "event": "call", "step": 3, "tool": "read_file", "args": {"path": "big.log", "content": "***"}}
+{"ts": 1792849871.616, "event": "call", "step": 1, "tool": "read_file", "args": {"path": "a.txt"}, "token": "***"}
+{"ts": 1792849871.617, "event": "result", "step": 1, "ok": true, "chars": 120}
+{"ts": 1792849871.617, "event": "call", "step": 2, "tool": "query_db", "args": {"dsn": "postgres://u:p@h/db", "password": "***"}}
+{"ts": 1792849871.618, "event": "error", "step": 2, "msg": "connect failed: postgres://u:p@h/db"}
+{"ts": 1792849871.618, "event": "call", "step": 3, "tool": "read_file", "args": {"path": "big.log", "content": "***"}}
+{"ts": 1792849873.472, "event": "call", "step": 1, "tool": "read_file", "args": {"path": "a.txt"}, "token": "***"}
+{"ts": 1792849873.472, "event": "result", "step": 1, "ok": true, "chars": 120}
+{"ts": 1792849873.472, "event": "call", "step": 2, "tool": "query_db", "args": {"dsn": "postgres://u:p@h/db", "password": "***"}}
+{"ts": 1792849873.473, "event": "error", "step": 2, "msg": "connect failed: postgres://u:p@h/db"}
+{"ts": 1792849873.473, "event": "call", "step": 3, "tool": "read_file", "args": {"path": "big.log", "content": "***"}}
+{"ts": 1792849903.891, "event": "call", "step": 1, "tool": "read_file", "args": {"path": "a.txt"}, "token": "***"}
+{"ts": 1792849903.892, "event": "result", "step": 1, "ok": true, "chars": 120}
+{"ts": 1792849903.892, "event": "call", "step": 2, "tool": "query_db", "args": {"dsn": "postgres://u:p@h/db", "password": "***"}}
+{"ts": 1792849903.892, "event": "error", "step": 2, "msg": "connect failed: postgres://u:p@h/db"}
+{"ts": 1792849903.893, "event": "call", "step": 3, "tool": "read_file", "args": {"path": "big.log", "content": "***"}}
+{"ts": 1792850014.625, "event": "call", "step": 1, "tool": "read_file", "args": {"path": "a.txt"}, "token": "***"}
+{"ts": 1792850014.626, "event": "result", "step": 1, "ok": true, "chars": 120}
+{"ts": 1792850014.626, "event": "call", "step": 2, "tool": "query_db", "args": {"dsn": "postgres://u:p@h/db", "password": "***"}}
+{"ts": 1792850014.626, "event": "error", "step": 2, "msg": "connect failed: postgres://u:p@h/db"}
+{"ts": 1792850014.627, "event": "call", "step": 3, "tool": "read_file", "args": {"path": "big.log", "content": "***"}}
+{"ts": 1792850068.901, "event": "call", "step": 1, "tool": "read_file", "args": {"path": "a.txt"}, "token": "***"}
+{"ts": 1792850068.901, "event": "result", "step": 1, "ok": true, "chars": 120}
+{"ts": 1792850068.902, "event": "call", "step": 2, "tool": "query_db", "args": {"dsn": "postgres://u:p@h/db", "password": "***"}}
+{"ts": 1792850068.902, "event": "error", "step": 2, "msg": "connect failed: postgres://u:p@h/db"}
+{"ts": 1792850068.902, "event": "call", "step": 3, "tool": "read_file", "args": {"path": "big.log", "content": "***"}}
+{"ts": 1792850172.375, "event": "call", "step": 1, "tool": "read_file", "args": {"path": "a.txt"}, "token": "***"}
+{"ts": 1792850172.375, "event": "result", "step": 1, "ok": true, "chars": 120}
+{"ts": 1792850172.376, "event": "call", "step": 2, "tool": "query_db", "args": {"dsn": "postgres://u:p@h/db", "password": "***"}}
+{"ts": 1792850172.376, "event": "error", "step": 2, "msg": "connect failed: postgres://u:p@h/db"}
+{"ts": 1792850172.377, "event": "call", "step": 3, "tool": "read_file", "args": {"path": "big.log", "content": "***"}}

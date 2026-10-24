@@ -172,4 +172,25 @@
 {"ts": 1.0, "kind": "broken{"ts": 1792849795.7892501, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
 {"ts": 1792849795.7895648, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
 {"ts": 1792849795.790147, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792849841.7602005, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792849841.7606528, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792849841.7609115, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792849860.9375434, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792849860.938004, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792849860.938576, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792849866.2335403, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792849866.2342603, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792849866.234659, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792849895.6011672, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792849895.6016915, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792849895.6021657, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792850007.0973086, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792850007.0978043, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792850007.0981522, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792850061.384141, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792850061.3847437, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792850061.385147, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792850164.7309144, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792850164.7313385, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792850164.731737, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
 {"ts": 1.0, "kind": "broken
