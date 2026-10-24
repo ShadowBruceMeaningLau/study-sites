@@ -14,6 +14,11 @@
 **/tools/_dom/
 **/tools/fixture.html
 **/tools/fixture-data.js
+# ↑ fixture-data.js 是**手写**的极小课程数据（make-fixture.mjs 只生成 fixture.html），
+#   它是 `smoke-test.mjs --fixture` 的输入，属于质量门的一部分，必须进版本库；
+#   下面的反向规则把它从上面的忽略里救回来（忽略只在没被显式 add 时生效，
+#   而“没被 add”正是新克隆拿不到它、--fixture 门跑不起来的原因）。
+!**/tools/fixture-data.js
 .progress/
 **/.progress/
 **/tools/logs/
