@@ -31,4 +31,10 @@
 {"ts": 1.0, "kind": "broken{"ts": 1792846485.847599, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
 {"ts": 1792846485.8481116, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
 {"ts": 1792846485.848357, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792846497.181803, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792846497.1822608, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792846497.182601, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
+{"ts": 1.0, "kind": "broken{"ts": 1792846497.2852173, "kind": "user", "payload": {"text": "读三个文件并汇总"}}
+{"ts": 1792846497.2856054, "kind": "tool_call", "payload": {"name": "read_file", "args": {"path": "A"}}}
+{"ts": 1792846497.2858887, "kind": "tool_result", "payload": {"ok": true, "lines": 120}}
 {"ts": 1.0, "kind": "broken
