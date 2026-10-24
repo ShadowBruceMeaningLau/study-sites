@@ -169,7 +169,13 @@ for (const { where, text } of strings) {
   // 先把「已经被正确识别为公式」的片段换成等长占位符，再找剩下的 $...$ 候选。
   // 另外要把 \$ 转义先换掉 —— splitMath 会把 \$ 渲染成字面 $ 并丢掉反斜杠，
   // 不先换掉的话，\$esp 这种「本意就是字面美元符」的写法会被误报成一对 $esp$。
-  const masked = MATHR.splitMath(String(text).replace(/\\\$/g, "\u0000"))
+  const masked = MATHR.splitMath(
+    String(text)
+      .replace(/\\\$/g, "\u0000")
+      // shell / 模板里的 ${NAME} 占位符（如 ${PLUGIN_ROOT}）不是公式：
+      // 不先挖掉的话，两个占位符之间的文字会被当成一对 $ ... $ 夹着的公式体而误报。
+      .replace(/\$\{[^{}\n]*\}/g, "\u0001")
+  )
     .map((p) => (p.math ? "$" + "M".repeat(p.text.length) + "$" : p.text))
     .join("")
     .replace(/\$\$[^$\n]*\$\$/g, "");
