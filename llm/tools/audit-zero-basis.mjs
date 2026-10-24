@@ -70,7 +70,7 @@ function isRealTerm(text, idx, term) {
   return true;
 }
 
-const EXPLAIN_MARK = /(即|是指|称为|叫做|记作|意思是|也就是说|读作|又称|是一种|定义为|定义为：|解释|通俗|直观地说|简单说|所谓|指的是|（[A-Za-z][^）]{1,30}）|\([A-Za-z][^)]{1,30}\))/;
+const EXPLAIN_MARK = /(即|就是指|是指|称为|叫做|记作|意思是|也就是说|读作|又称|是一种|定义为|解释|通俗|直观地说|简单说|所谓|指的是|（[A-Za-z][^）]{1,80}）|\([A-Za-z][^)]{1,80}\))/;
 
 const packs = [];
 for (const f of readdirSync(DATA).filter((x) => x.endsWith(".js")).sort()) {
@@ -88,6 +88,7 @@ for (const { file, course } of packs) {
   let lazy = 0;                    // 概念块里"用了却没在本块解释"的术语
   let firstUnclear = 0;            // 首次出现时所在块没有解释
   const detail = [];
+  const lazyDetail = [];
   for (const l of course.lessons ?? []) {
     for (const b of l.blocks ?? []) {
       const text = [b.md, b.title, b.note, (b.items || []).map((i) => (typeof i === "string" ? i : (i.t || "") + (i.d || ""))).join(" ")].filter(Boolean).join(" ");
@@ -105,13 +106,16 @@ for (const { file, course } of packs) {
           }
         }
         // 之后再次出现在 concept 块里、而该块没有任何解释标记 → 记为"假设已懂"
-        if (!first && b.type === "concept" && !blockExplains) lazy++;
+        if (!first && b.type === "concept" && !blockExplains) {
+          lazy++;
+          if (lazyDetail.length < 6) lazyDetail.push({ t, lesson: l.title, ctx: text.slice(Math.max(0, text.indexOf(t) - 30), text.indexOf(t) + 55).replace(/\n/g, " ") });
+        }
       }
     }
   }
   grandTotal += firstUnclear;
   grandLazy += lazy;
-  rows.push({ id: course.id, title: course.title, term: course.term || "", hits: firstUnclear, lazy, total: seen.size, detail });
+  rows.push({ id: course.id, title: course.title, term: course.term || "", hits: firstUnclear, lazy, total: seen.size, detail, lazyDetail });
 }
 
 rows.sort((a, b) => (b.hits + b.lazy) - (a.hits + a.lazy));
@@ -126,5 +130,16 @@ console.log("\n=== 最严重的 5 门课的前几处 ===");
 rows.slice(0, 5).forEach((r) => {
   if (!r.hits && !r.lazy) return;
   console.log("【" + r.title + "】首现未解释 " + r.hits + " / 后续仅使用 " + r.lazy + "，例如：");
-  r.detail.slice(0, 3).forEach((d) => console.log("   · " + d.t + "（" + d.lesson.slice(0, 18) + "）：…" + d.ctx + "…"));
+  const shown = [...r.detail.slice(0, 3), ...(r.lazyDetail || []).slice(0, 3)];
+  shown.forEach((d) => console.log("   · " + d.t + "（" + d.lesson.slice(0, 18) + "）：…" + d.ctx + "…"));
 });
+if (process.argv.includes("--all")) {
+  console.log("\n=== 全部命中（--all）===");
+  for (const r of rows) {
+    if (!r.hits && !r.lazy) continue;
+    console.log("\n【" + r.title + "】");
+    for (const d of [...r.detail, ...(r.lazyDetail || [])]) {
+      console.log("   · " + d.t + "（" + d.lesson.slice(0, 18) + "）：…" + d.ctx + "…");
+    }
+  }
+}
