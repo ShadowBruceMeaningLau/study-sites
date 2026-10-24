@@ -1,17 +1,18 @@
-# 四个独立的学习站：计算机（cs）+ 数学（math）+ 物理（physics）+ 哲学（philosophy）
+# 五个独立的学习站：计算机（cs）+ 数学（math）+ 物理（physics）+ 哲学（philosophy）+ AI（llm）
 
-工作区里有四个**完全独立、互不引用**的自学程序：各自有自己的入口、引擎、课程内容、启动脚本与验证工具，
-学习进度分开存储（localStorage 四个不同的键），互不干扰。
+工作区里有五个**完全独立、互不引用**的自学程序：各自有自己的入口、引擎、课程内容、启动脚本与验证工具，
+学习进度分开存储（localStorage 五个不同的键），互不干扰。
 
 ```
 .
-├── start-tray.vbs       ← 【推荐】四个站起在系统托盘里：没有黑窗口，也不自动弹网页
-├── start-all.cmd        ← 旧的命令行方式：留一个窗口，四个站一次起好（日志看得见）
+├── start-tray.vbs       ← 【推荐】五个站起在系统托盘里：没有黑窗口，也不自动弹网页
+├── start-all.cmd        ← 旧的命令行方式：留一个窗口，五个站一次起好（日志看得见）
 ├── cs/                  ← 计算机科学与技术：24 门课 / 169 讲 / 204 实验 / 677 题 / 约 84 万字
 ├── math/                ← 基础数学：23 门课 / 130 讲 / 176 实验 / 516 题 / 约 53 万字
 ├── physics/             ← 物理学：26 门课 / 143 讲 / 224 仿真实验 / 约 124 万字
 ├── philosophy/          ← 哲学：17 门课 / 85 讲（含单文件离线版）
-└── tools/serve-all.mjs  ← 四个站真正的服务实现（托盘和 start-all.cmd 都用它）
+├── llm/                 ← AI：LLM·Harness·Agent，从零基础到 2026 前沿（开发中，见 llm/README.md）
+└── tools/serve-all.mjs  ← 五个站真正的服务实现（托盘和 start-all.cmd 都用它）
 ```
 
 ---
@@ -20,16 +21,17 @@
 
 | 想学什么 | 双击 | 打开的地址 |
 |---|---|---|
-| **四个都要（推荐）** | `start-tray.vbs` | 进托盘（**不开黑窗口、不自动开网页**）；右键图标打开 `8123`/`8124`/`8125`/`8126` |
-| 四个都要（想盯着日志） | `start-all.cmd` | `8123` 计算机、`8124` 数学、`8125` 物理、`8126` 哲学 |
+| **五个都要（推荐）** | `start-tray.vbs` | 进托盘（**不开黑窗口、不自动开网页**）；右键图标打开 `8123`/`8124`/`8125`/`8126`/`8127` |
+| 五个都要（想盯着日志） | `start-all.cmd` | `8123` 计算机、`8124` 数学、`8125` 物理、`8126` 哲学、`8127` AI |
 | 只要计算机 | `cs\start.cmd` | `http://127.0.0.1:8123/cs/index.html` |
 | 只要数学 | `math\start-math.cmd` | `http://127.0.0.1:8124/index.html` |
 | 只要物理 | `physics\start-physics.cmd` | `http://127.0.0.1:8125/index.html` |
 | 只要哲学 | `philosophy\start-philosophy.cmd` | `http://127.0.0.1:8126/index.html` |
+| 只要 AI | `llm\start.cmd` | `http://127.0.0.1:8127/index.html` |
 
 **用手机 / 平板看**：每个 `.cmd` 都会监听局域网并把手机能用的地址打印在窗口里
 （手机需与本机连同一个 WiFi），手机和电脑共用同一份学习进度。
-`start-all.cmd` 会**一次起四个服务**并在同一个窗口里把四个站的本机地址与手机地址全部列出来：
+`start-all.cmd` 会**一次起五个服务**并在同一个窗口里把五个站的本机地址与手机地址全部列出来：
 
 ```
   计算机     本机  http://127.0.0.1:8123/index.html
@@ -40,13 +42,15 @@
              手机  http://192.168.0.107:8125/index.html   [WLAN]
   哲学       本机  http://127.0.0.1:8126/index.html
              手机  http://192.168.0.107:8126/index.html   [WLAN]
+  AI         本机  http://127.0.0.1:8127/index.html
+             手机  http://192.168.0.107:8127/index.html   [WLAN]
 ```
 
-四个站**各自独立**：某个站端口被占用只影响它自己，其余三个照常运行。
-关掉那个窗口（或 `Ctrl+C`）就停掉全部四个。
+五个站**各自独立**：某个站端口被占用只影响它自己，其余四个照常运行。
+关掉那个窗口（或 `Ctrl+C`）就停掉全部五个。
 
-最省事的用法：**直接双击 `cs\index.html`、`math\index.html`、`physics\index.html` 或 `philosophy\index.html`**。
-四个站都是零依赖、纯静态，用 `file://` 打开即可完整使用（进度、错题本、交互实验、物理仿真全部正常）。
+最省事的用法：**直接双击 `cs\index.html`、`math\index.html`、`physics\index.html`、`philosophy\index.html` 或 `llm\index.html`**。
+五个站都是零依赖、纯静态，用 `file://` 打开即可完整使用（进度、错题本、交互实验、物理仿真全部正常）。
 
 > 所有 `.cmd` 都刻意只写 ASCII 英文提示：cmd.exe 按字节解析批处理文件，中文等多字节字符
 > 可能把命令行"撕开"（会报 `'evel' 不是内部或外部命令` 这类错误）。中文说明都在各自的 README 里。
@@ -55,7 +59,7 @@
 
 ## 托盘启动器（推荐）+ 开机自启
 
-双击 **`start-tray.vbs`**：四个站起在系统托盘里，**没有黑窗口，也不自动打开网页**。
+双击 **`start-tray.vbs`**：五个站起在系统托盘里，**没有黑窗口，也不自动打开网页**。
 （`.vbs` 由 `wscript.exe` 启动，不创建控制台；若系统禁用了 VBScript，改用 `start-tray.cmd`，
 它只会闪一下命令行窗口。）
 
@@ -63,13 +67,13 @@
 
 | 操作 | 效果 |
 |---|---|
-| 双击图标 | 在浏览器里打开四个站 |
-| 右键 → 状态行 | 实时显示 `4/4` 可用、哪几站没响应、是否由别的方式启动 |
-| 右键 → 打开四个学习站 / 各站条目 | 逐站打开（没起来的站会灰掉并标注） |
+| 双击图标 | 在浏览器里打开五个站 |
+| 右键 → 状态行 | 实时显示 `5/5` 可用、哪几站没响应、是否由别的方式启动 |
+| 右键 → 打开五个学习站 / 各站条目 | 逐站打开（没起来的站会灰掉并标注） |
 | 右键 → 手机 / 平板 | 每站**第一条局域网地址**（真实网卡优先，WSL/VMware 之类排后面）点一下即打开；也能「复制全部手机地址」 |
 | 右键 → 服务 | 启动 / 停止 / 重新启动；「仅本机访问」开关（关掉手机访问）；「查看运行日志」；以及「停止『其它方式启动』的服务」 |
 | 右键 → 开机自动启动 | 见下 |
-| 右键 → 退出 | 停止四个服务并关闭托盘（**不会留下孤儿 node 进程**） |
+| 右键 → 退出 | 停止五个服务并关闭托盘（**不会留下孤儿 node 进程**） |
 
 **开机自启（只起服务，不打开网页）**
 
@@ -83,7 +87,7 @@ Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Run -Name DSH-S
 
 **日志与自检**
 
-- 服务输出（含四个站的本机 / 手机地址）在 `tools\logs\serve-all.log`，超过 1 MB 自动轮转为 `.log.1`。
+- 服务输出（含五个站的本机 / 手机地址）在 `tools\logs\serve-all.log`，超过 1 MB 自动轮转为 `.log.1`。
 - 一条命令自检整套链路（启动 → 探活 → 解析手机地址 → 停止 → 查残留）：
 
 ```powershell
@@ -91,7 +95,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\tray.ps1 -SelfTest
 ```
 
 **占用与取舍**：常驻时托盘约 90 MB + node 服务约 57 MB（私有内存），合计约 150 MB —— 比一个浏览器标签页重。
-不想常驻就用菜单「退出」，需要时再双击 `start-tray.vbs`。它是**单实例**的：已经在跑时再点一次只会打开四个站，
+不想常驻就用菜单「退出」，需要时再双击 `start-tray.vbs`。它是**单实例**的：已经在跑时再点一次只会打开五个站，
 不会开出第二个托盘；也不会打开网页。
 
 > **文件编码约定（改 `tools\tray.ps1` 前必读）**：`tray.ps1` 必须保持**纯 ASCII**，中文界面文字全放在
@@ -104,7 +108,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\tray.ps1 -SelfTest
 
 ## 手机 / 平板怎么用（同一个 WiFi）
 
-四个启动脚本**默认就打开了局域网访问**（内部给服务器加了 `--lan`），启动后窗口里会直接打印手机能打开的地址，形如：
+五个启动脚本**默认就打开了局域网访问**（内部给服务器加了 `--lan`），启动后窗口里会直接打印手机能打开的地址，形如：
 
 ```
   手机 / 平板（需与本机连同一个 WiFi）:
@@ -215,24 +219,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\tray.ps1 -SelfTest
 
 ## 互不干扰的保证
 
-| 方面 | cs/ | math/ | physics/ | philosophy/ |
-|---|---|---|---|---|
-| 入口 | `cs/index.html` | `math/index.html` | `physics/index.html` | `philosophy/index.html` |
-| 引擎 | `cs/app/*.js` | `math/app/*.js`（独立副本） | `physics/app/*.js`（独立副本；多 simlab/cards/constants） | `philosophy/app/*.js`（独立副本） |
-| 课程数据 | `cs/data/*.js` | `math/data/*.js` | `physics/data/*.js` | `philosophy/data/*.js` |
-| localStorage 键 | `cs-learn:v1` | `math-learn:v1` | `physics-learn:v1` | `philosophy-learn:v1` |
-| 默认端口 | 8123 | 8124 | 8125 | 8126 |
-| 启动脚本 | `cs/start.cmd` | `math/start-math.cmd` | `physics/start-physics.cmd` | `philosophy/start-philosophy.cmd` |
-| 自带服务器 | `cs/tools/serve.mjs` | `math/tools/serve.mjs` | `physics/tools/serve.mjs` | `philosophy/tools/serve.mjs` |
-| 验证工具 | `cs/tools/*` | `math/tools/*` | `physics/tools/*` | `philosophy/tools/*` |
+| 方面 | cs/ | math/ | physics/ | philosophy/ | llm/ |
+|---|---|---|---|---|---|
+| 入口 | `cs/index.html` | `math/index.html` | `physics/index.html` | `philosophy/index.html` | `llm/index.html` |
+| 引擎 | `cs/app/*.js` | `math/app/*.js`（独立副本） | `physics/app/*.js`（独立副本；多 simlab/cards/constants） | `philosophy/app/*.js`（独立副本） | `llm/app/*.js`（独立副本；多六类 LLM 实验） |
+| 课程数据 | `cs/data/*.js` | `math/data/*.js` | `physics/data/*.js` | `philosophy/data/*.js` | `llm/data/*.js` |
+| localStorage 键 | `cs-learn:v1` | `math-learn:v1` | `physics-learn:v1` | `philosophy-learn:v1` | `llm-learn:v1` |
+| 默认端口 | 8123 | 8124 | 8125 | 8126 | 8127 |
+| 启动脚本 | `cs/start.cmd` | `math/start-math.cmd` | `physics/start-physics.cmd` | `philosophy/start-philosophy.cmd` | `llm/start.cmd` |
+| 自带服务器 | `cs/tools/serve.mjs` | `math/tools/serve.mjs` | `physics/tools/serve.mjs` | `philosophy/tools/serve.mjs` | `llm/tools/serve.mjs` |
+| 验证工具 | `cs/tools/*` | `math/tools/*` | `physics/tools/*` | `philosophy/tools/*` | `llm/tools/*` |
 
-四个目录之间**没有任何跨目录引用**：删掉任意一个，其余仍能完整运行。
+五个目录之间**没有任何跨目录引用**：删掉任意一个，其余仍能完整运行。
 `tools/serve-all.mjs` 与 `start-all.cmd` 是工作区级的启动器（不属于任何一个站），
-它只是把四个站各自的目录当根、各起一个端口——**每个站仍然只靠自己那份代码运行**。
+它只是把五个站各自的目录当根、各起一个端口——**每个站仍然只靠自己那份代码运行**。
 
 ---
 
-## 质量保障（四个站各自独立跑）
+## 质量保障（五个站各自独立跑）
 
 ```powershell
 # 计算机站
@@ -276,7 +280,19 @@ node tools\validate-reading.mjs         # 阅读轨迹（READING-PLAN-SPEC.md）
 node tools\smoke-test.mjs
 node tools\verify-truthtables.mjs
 
-# 托盘启动器（四站整条链路：启动 → 探活 → 解析手机地址 → 停止 → 查残留）
+# AI 站（LLM·Harness·Agent）
+cd llm
+node tools\validate-curriculum.mjs
+node tools\smoke-test.mjs
+node tools\smoke-test.mjs --fixture
+node tools\check-python.mjs
+node tools\audit-prereqs.mjs            # need 引用可解析、零跨站（本站独有的依赖门）
+node tools\audit-independence.mjs       # 正文零跨课指引、零隐性回指
+node tools\audit-zero-basis.mjs         # 零基础友好度
+node tools\audit-math.mjs
+node tools\ollama-probe.mjs             # Ollama 在线则验 API 形状；离线自动跳过（非门禁）
+
+# 托盘启动器（五站整条链路：启动 → 探活 → 解析手机地址 → 停止 → 查残留）
 cd ..
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\tray.ps1 -SelfTest
 ```
