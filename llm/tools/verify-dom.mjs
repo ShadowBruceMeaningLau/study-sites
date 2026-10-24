@@ -19,7 +19,10 @@ const EXPECT = {
   notebook: ["错题本", "导出错题"],
   review: ["复习"],
   glossary: ["术语表", "LLM 入门"],
-  roadmap: ["验收判据"]
+  roadmap: ["验收判据"],
+  "course-llm0": ["LLM 零基础入门", "lesson-row", "学这门课之前"],
+  "lesson-llm0-tok": ["lab-token-cell", "随堂测验", "qcard"],
+  "lesson-llm0-temp": ["lab-samp", "qcard"]
 };
 
 let fail = 0;

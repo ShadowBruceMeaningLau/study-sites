@@ -90,7 +90,8 @@
    - `ragsteps`：切分 → 嵌入 → 检索 → 拼接 prompt 的分步演示；
    - `agenttrace`：ReAct 循环逐步回放 Thought / Action / Observation 与终止条件；
    - `protolab`：UHP / MCP / A2A / ACP / AG-UI 协议生态角色连线图；
-   - 另有 cs 站同款 `datalab` 通用单步执行器可用。
+   - 以上 6 类为 LLM 站专用；引擎共注册 **12 类**渲染器——另含通用 `datalab`（任意流水线分步演示）
+     与 cs 站同款的 `pathlab` / `schedlab` / `cpulab` / `pagelab` / `arbitlab`（保留可用）。
 6. **易错点**：把面试与工程里最常踩的坑先讲清楚。
 7. **随堂测验 + 解析**：单选 / 多选 / 填空 / 排序四种题型，答错自动进错题本。
 
@@ -116,7 +117,7 @@
 ├── app/
 │   ├── app.css                # 全部样式（深色/浅色双主题、响应式）
 │   ├── markdown.js            # 迷你 Markdown 渲染 + 语法高亮
-│   ├── labs.js                # 交互实验组件（六类 LLM 实验 + datalab 等）
+│   ├── labs.js                # 交互实验组件（共 12 类渲染器，见 §3.5）
 │   ├── quiz.js                # 测验渲染、判分、解析、归一化比对
 │   ├── progress.js            # 进度 / 错题本 / 导入导出（localStorage 键 llm-learn:v1）
 │   ├── glossary.js            # 术语表（LLM 五类起步集，随课程增补）

@@ -33,6 +33,9 @@ $routes = [ordered]@{
   "review"      = "/review"
   "glossary"    = "/glossary"
   "roadmap"     = "/roadmap"
+  "course-llm0" = "/c/llm-zero-basics"
+  "lesson-llm0-tok"  = "/c/llm-zero-basics/llm0-token"
+  "lesson-llm0-temp" = "/c/llm-zero-basics/llm0-temperature"
 }
 
 foreach ($name in $routes.Keys) {
