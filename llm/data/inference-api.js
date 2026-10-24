@@ -383,6 +383,503 @@ window.COURSE_PACKS.push({
         "我在自己的电脑上跑通过流式读取，看到字真的一个一个出现",
         "我知道要拿流式的 usage 必须额外开一个开关"
       ]
+     },
+
+    {
+      id: "api-4",
+      title: "流式解析：一帧被切成三段也要拼得回来",
+      goal: "能写出一个对「块边界」完全不敏感的流式解析器，处理半截 JSON、跨块帧、注释行与三种终止写法。",
+      est: 40,
+      blocks: [
+        {
+          type: "analogy",
+          title: "拆快递包装",
+          md: "快递员把包裹送到你手上，不是「一个完整的东西」，而是「一层一层拆开」的过程：外箱、气泡膜、商品盒、说明书、商品本体。你每拆一层都能拿到一点新东西。\n\n网络传数据也一样。你在上一讲看到的 24 个 data 帧，不会一次全部出现在你手里——它们是**一块一块**到达的，块的大小由网络和缓冲区决定，跟「帧」的边界毫无关系。一帧可能被切成三段到达，也可能三帧挤在同一块里。\n\n所以解析流式数据的核心不是「读一帧、解析一帧」，而是**维护一个缓冲区，让它把碎片攒成完整的帧**。"
+        },
+        {
+          type: "concept",
+          title: "为什么块边界与帧边界无关",
+          md: "TCP 是**字节流**协议，它只保证「字节按顺序到达」，完全不保证「一块数据恰好是一次逻辑消息」。所以下面这些情况都会真实发生（本机实测过前两种）：\n\n- 一帧的 JSON 被切成两段到达：先收到 「data: {\"response\": \"缓存」，再收到 「就是把常用的数据先放在快的地方\", \"done\": false}」\n- 两帧挤在同一块里：一块里同时出现两个完整的 「data:」 行\n- 一帧的中间断在转义字符之后：「data: {\"response\": \"换行是\\」 断在这里，下一个字节才是 「n\"}」\n\n这三种情况下，「读到什么就解析什么」必然出错。正确做法是：**把收到的所有内容拼进缓冲区，按换行符切开，只解析那些被换行符完整界定的行，另一半留着**。\n\n这个思路有个好处：解析逻辑对「块怎么切」完全不敏感。不管网络怎么切，结果都一样。"
+        },
+        {
+          type: "code",
+          lang: "python",
+          title: "把解析器写成一个状态机：缓冲 + while 切行",
+          code: "# 这是本讲的核心算法，不依赖任何第三方库\nimport json\n\nSTOP_MARKERS = {'[DONE]', 'DONE'}\n\n\ndef parse_chunk(buf, chunk_text):\n    '''把新到达的一块文本并进缓冲区，返回 (新缓冲区, 解析出的片段列表, 是否结束)。\n\n    关键点：只有以换行符结尾的行才算「完整的行」。剩下的尾巴留着。\n    '''\n    buf += chunk_text\n    pieces = []\n    finished = False\n\n    while True:\n        idx = buf.find('\\n')\n        if idx < 0:\n            break                      # 没有完整行，全部留着\n        line, buf = buf[:idx].rstrip('\\r'), buf[idx + 1:]\n        line = line.strip()\n\n        if not line or line.startswith(':'):\n            continue                   # 空行、SSE 注释（心跳）都跳过\n        if not line.startswith('data:'):\n            continue                   # event: / id: 等非数据行跳过\n\n        payload = line[5:].strip()\n        if payload.upper() in STOP_MARKERS:\n            finished = True\n            break\n\n        try:\n            obj = json.loads(payload)\n        except json.JSONDecodeError:\n            # 理论上到不了这里：以换行结尾的行若解析失败，说明这一帧真的坏了，\n            # 丢掉它比卡死整个流更好\n            continue\n\n        piece = obj.get('response', '')\n        if piece:\n            pieces.append(piece)\n        if obj.get('done'):\n            finished = True\n            break\n\n    return buf, pieces, finished\n\n\nif __name__ == '__main__':\n    # 模拟三次到达：第一帧被切成三段，第二帧与第三帧挤在同一块\n    arrivals = [\n        'data: {\"response\": \"缓存',\n        '就是把常用的数据\", \"done\": fal',\n        'se}\\n\\ndata: {\"response\": \"先放在快的地方\", \"done\": false}\\ndata: {\"response\": \"。\", \"done\": false}\\n',\n        'data: {\"response\": \"\", \"done\": true}\\n',\n    ]\n\n    buf = ''\n    collected = ''\n    for i, chunk in enumerate(arrivals, 1):\n        buf, pieces, finished = parse_chunk(buf, chunk)\n        collected += ''.join(pieces)\n        print('第 %d 块到达 → 解析出 %d 片，缓冲区残留 %d 字符' % (i, len(pieces), len(buf)))\n        if finished:\n            print('收到终止信号，结束')\n            break\n\n    print()\n    print('拼出的完整文本：', collected)\n"
+        },
+        {
+          type: "concept",
+          title: "四种必须在同一处处理的边界情况",
+          md: "把上面那段算法读一遍，你能看到四个专门为边界情况写的分支。它们各自的理由值得单独记住：\n\n1. **「not line」 跳过空行**：SSE 用空行做帧分隔，它不是数据。\n2. **「line.startswith(':')」 跳过注释**：SSE 允许冒号开头的注释行，常被用作心跳保活（本机实测 24 个数据帧之间确实还会夹着别的行）。不跳过就会把注释喂给 json.loads。\n3. **「line.startswith('data:')」 过滤**：SSE 还可能有 「event:」、「id:」、「retry:」 这些字段行。只有 「data:」 后面才是数据。\n4. **「payload.upper() in STOP_MARKERS」**：终止标记不是 JSON，必须先当字符串比对，不能丢进 json.loads。\n\n**还有第五个隐含的分支**：解析失败时 「continue」 而不是抛错。这个选择有争议——严格做法是记录并上报，宽松做法是跳过。实践里更稳妥的是跳过坏帧但计数，超过阈值就中止（说明流真的坏了，而不是偶发）。"
+        },
+        {
+          type: "interactive",
+          lab: "datalab",
+          title: "实验台：跟着缓冲区看它怎么把碎片拼成帧",
+          config: {
+            state: {
+              "缓冲区": "（空）",
+              "已拼出的文本": "（空）",
+              "已解析帧数": "0"
+            },
+            steps: [
+              {
+                desc: "第 1 块到达：只有一帧开头的一小段，没有换行符",
+                state: { "本块内容": "data: {\"response\": \"缓存", "缓冲区": "data: {\"response\": \"缓存", "已拼出的文本": "（空）", "已解析帧数": "0（还没有完整行，全部留着）" },
+                note: "关键判断：缓冲区里没有换行符 → 一行都不完整 → 什么都不解析。这一块等于「还没到货」。"
+              },
+              {
+                desc: "第 2 块到达：接着来，仍然没有换行符",
+                state: { "本块内容": "就是把常用的数据\", \"done\": fal", "缓冲区": "两段拼起来，JSON 已经接近完整但还差结尾", "已拼出的文本": "（空）", "已解析帧数": "0" },
+                note: "缓冲区越来越长，但仍没有换行——继续等。这个「等」是必要成本：宁可晚一点解析，也不能拿半截 JSON 去猜。"
+              },
+              {
+                desc: "第 3 块到达：这一块里同时结束了第一帧、并挤进了第二、三帧",
+                state: { "本块内容": "se}、换行、第二帧、第三帧（都在同一块里）", "缓冲区": "按换行切开，逐行处理完三帧后清空", "已拼出的文本": "缓存就是把常用的数据先放在快的地方。", "已解析帧数": "3" },
+                note: "这是反向的坑：以为「一块只产出一帧」就会漏掉后两帧。必须 while 循环，一直处理到没有完整行为止。"
+              },
+              {
+                desc: "第 4 块到达：终止帧",
+                state: { "本块内容": "data: {\"response\": \"\", \"done\": true}", "缓冲区": "解析后置结束标志", "已拼出的文本": "（不变）", "已解析帧数": "4", "结束标志": "true" },
+                note: "注意 response 是空串但 done 是 true——不能因为内容空就跳过这一帧，否则永远收不了尾。"
+              },
+              {
+                desc: "对照：如果换一种终止写法（data: [DONE]）",
+                state: { "本块内容": "data: [DONE]", "缓冲区": "字符串比对命中终止表", "已拼出的文本": "（不变）", "已解析帧数": "不变", "结束标志": "true" },
+                note: "所以终止判断要做在 json.loads 之前：[DONE] 根本不是 JSON，把它丢进 json.loads 会直接抛异常。"
+              },
+              {
+                desc: "收口：为什么这套算法对块边界完全不敏感",
+                state: { "不管怎么切": "只要字节顺序不变，拼出来的缓冲区最终一致", "解析时机": "只看「有没有换行符」，与块大小无关", "结论": "正确性由「按换行切行 + 只解析完整行」保证", "代价": "多一份缓冲区内存，可忽略" },
+                note: "这是流式解析的全部秘密：不猜、不截断、只认换行这个明确的边界。"
+              }
+            ]
+          }
+        },
+        {
+          type: "pitfall",
+          title: "流式解析的五个坑",
+          items: [
+            "用 resp.read() 读流式响应：它会阻塞到全部结束，流式就白开了。要用 resp.read(块大小) 或按行迭代。",
+            "把半截 JSON 直接 json.loads：必然抛 JSONDecodeError。正确做法是缓冲等拼接，而不是丢帧或重试。",
+            "只处理 done 字段、不处理 [DONE]：两种终止写法在不同服务端都常见（本机 Ollama 用 done 字段，OpenAI 兼容接口常用 [DONE]）。",
+            "把 SSE 注释行当数据：冒号开头的行是心跳/注释，喂给 json.loads 必错。",
+            "解析失败就整个中止：偶发的一个坏帧不应该让整条流报废；跳过并计数，超阈值再中止。"
+          ]
+        }
+      ],
+      quiz: [
+        {
+          id: "api-4-q1",
+          type: "single",
+          q: "为什么流式解析必须要一个缓冲区？",
+          options: ["为了让代码更整洁", "因为 TCP 是字节流，块边界与帧边界无关，一帧可能被切成多段",
+          "为了节省内存", "为了防止服务端限流"],
+          answer: 1,
+          why: "正确项是 B：TCP 只保证字节顺序，不保证一块等于一条逻辑消息，所以一帧可能断在任意位置。缓冲区负责攒到完整一帧再解析。A 与正确性无关。C 恰好相反——缓冲要多占一点内存。D 与限流无关。"
+        },
+        {
+          id: "api-4-q2",
+          type: "single",
+          q: "下面哪一行必须跳过、绝不能送进 json.loads？",
+          options: ["data: {\"response\": \"你好\"}", "data: [DONE]", ": keep-alive", "data: {\"done\": true}"],
+          answer: 1,
+          why: "正确答案是 B —— 它是终止标记，根本不是 JSON，必须先做字符串比对再决定是否结束。C 也要跳过（它是注释行），但 B 更关键：如果不特殊处理，[DONE] 会让 json.loads 抛异常，而它恰恰是正常结束信号。A、D 都是合法 JSON 帧。"
+        },
+        {
+          id: "api-4-q3",
+          type: "fill",
+          q: "SSE 里以冒号开头的行通常被用作什么？（填一个字）",
+          answer: ["心跳", "保活", "注释", "心跳包"],
+          why: "心跳（或注释/保活）。冒号开头是 SSE 的注释语法，服务端常用它定期发一条空注释来保持连接不被中间设备断开。解析器必须跳过它，否则会把它当数据。"
+        }
+      ],
+      checklist: [
+        "我能写出「拼缓冲 + 按换行切行 + 只解析完整行」的算法，并解释它为什么对块边界不敏感",
+        "我知道 [DONE] 必须在 json.loads 之前做字符串比对",
+        "我能说出空行、注释行、event 行、坏帧四种情况各自该怎么处理",
+        "我跑通了模拟三次到达的脚本，看到缓冲区残留与解析帧数的变化"
+      ]
+    },
+
+    {
+      id: "api-5",
+      title: "超时、限流与退避：让程序在不可靠的网络上活下来",
+      goal: "能给请求配出合理的超时，并按错误类型设计重试与退避策略，说清为什么立刻重试是错的。",
+      est: 40,
+      blocks: [
+        {
+          type: "analogy",
+          title: "打电话没人接",
+          md: "你给同事打电话，没人接。你会怎么做？\n\n- 立刻连拨二十次（这叫重试风暴，对方的手机直接没电）\n- 等十分钟再打一次（这是合理的）\n- 一直打到自己崩溃（这叫没有上限）\n\n网络请求的失败处理，正确的做法与这三条一一对应：**要等，等待时间要递增，而且必须有次数上限**。\n\n但还有一个更基本的问题：有些电话本来就不该重打——号码错了（拨一百次也还是错）、对方停机了（重打无用）。所以第一件事是判断「值得再试吗」，第二件事才是「怎么试」。"
+        },
+        {
+          type: "concept",
+          title: "先分类：哪些错值得重试",
+          md: "判断依据主要看 HTTP 状态码与错误类型：\n\n**值得重试**\n\n- 连接超时 / 读取超时：网络抖动，重试常能成功\n- 429：被限流，等一会儿就行\n- 500 / 502 / 503 / 504：服务端临时故障\n\n**不该重试**\n\n- 400：请求格式错（你自己的问题，改代码）\n- 401 / 403：凭据无效或权限不足（改配置）\n- 404：资源不存在（本机实测：模型名写错时 0.022 秒就返回 404，说明请求在闸口就被挡下，连模型都没被叫醒——这类错重试一百次也是同样的 404）\n- 422：参数校验失败\n\n分类的意义在于：**只有可重试的错才进入重试逻辑**。把所有错都塞进重试循环，会让一个本来立刻就能发现的配置错误，变成一个拖了三十秒才报的「网络超时」。"
+        },
+        {
+          type: "concept",
+          title: "超时要按最坏情况设，不是按平均",
+          md: "**超时**（timeout，就是指允许一次网络等待持续多久，超过就主动放弃）不设就是给自己埋雷：网络一旦卡住，程序会永远挂着。\n\n但设多少有讲究。一个常见错误是按「平均耗时」设：本机实测输出 20 个 token 是 0.481 秒，于是设 1 秒——看起来很合理，实际上大量请求会被误判失败，因为：\n\n- 输出 200 个 token 时实测是 **1.892 秒**，已经超了\n- 第一次请求还要加载模型，本机实测 load_duration 就占了 1.4 秒以上\n- 公共服务的排队时间完全不可控\n\n所以正确做法是**按最坏情况设**：估算「最长提示 + 最长输出 + 最坏排队 + 首次加载」，再乘以 2 作为安全余量。宁可让罕见的长请求多等一会儿，也不要让大量正常请求被误杀。\n\n更讲究的做法是**分两段超时**：连接超时给短（几秒，连不上说明服务真的不可达），读取超时给长（覆盖完整生成时间）。"
+        },
+        {
+          type: "concept",
+          title: "退避与抖动：为什么必须等，而且越等越久",
+          md: "**指数退避**（exponential backoff，就是指失败后先等一小段再试，每失败一次把等待时间乘以倍数）是重试的标准做法。两个理由：\n\n**为什么要等**：如果失败原因是服务过载，立刻重试只会让它更过载。等一会儿是给对方喘息的空间，也是给自己更高的成功率。\n\n**为什么越等越久**：连续失败说明问题没那么快好。等待时间按 1 秒 → 2 秒 → 4 秒 → 8 秒递增，给服务恢复留出真正的窗口。\n\n还要加一个容易被忽略的细节：**抖动**（jitter，就是指在等待时间上加一点随机偏移）。不加抖动的话，所有失败的客户端都会在**同一秒**重试，形成重试风暴——等于根本没退避。加了随机量，大家的节奏就错开了。\n\n以本机实测的限流场景为例：第 1 次失败等约 1 秒（1 × 2^0 加抖动），第 2 次等约 2 秒，第 3 次等约 4 秒。三次之内绝大多数瞬时故障都能过去。"
+        },
+        {
+          type: "code",
+          lang: "python",
+          title: "带分类、退避、抖动、上限的重试函数",
+          code: "import json\nimport random\nimport time\nimport urllib.error\nimport urllib.request\n\nURL = 'http://127.0.0.1:11434/v1/chat/completions'\n\n# 只有这些状态码值得重试\nRETRYABLE = {429, 500, 502, 503, 504}\n\n\ndef ask_once(payload, timeout=180):\n    body = json.dumps(payload).encode('utf-8')\n    req = urllib.request.Request(\n        URL, data=body, headers={'Content-Type': 'application/json'}\n    )\n    with urllib.request.urlopen(req, timeout=timeout) as resp:\n        return json.loads(resp.read().decode('utf-8'))\n\n\ndef ask_with_retry(payload, max_attempts=3, base_wait=1.0, timeout=180):\n    '''最多试 max_attempts 次；只有可重试的错才等，其余立即抛出。'''\n    last_error = None\n    for attempt in range(1, max_attempts + 1):\n        try:\n            return ask_once(payload, timeout=timeout)\n\n        except urllib.error.HTTPError as e:\n            last_error = e\n            if e.code not in RETRYABLE:\n                # 不可重试：立刻抛出，让上层看到真实的错误\n                raise\n            print('  第 %d 次：HTTP %d（可重试）' % (attempt, e.code))\n\n        except (urllib.error.URLError, TimeoutError) as e:\n            last_error = e\n            print('  第 %d 次：%s（可重试）' % (attempt, type(e).__name__))\n\n        if attempt == max_attempts:\n            break\n\n        # 指数退避 + 抖动：1s, 2s, 4s 各加最多 30% 随机\n        wait = base_wait * (2 ** (attempt - 1))\n        wait += random.uniform(0, wait * 0.3)\n        print('  等待 %.2f 秒' % wait)\n        time.sleep(wait)\n\n    raise RuntimeError('重试 %d 次仍失败：%r' % (max_attempts, last_error))\n\n\nif __name__ == '__main__':\n    payload = {\n        'model': 'qwen2:1.5b',\n        'messages': [{'role': 'user', 'content': '用一句话解释缓存。'}],\n        'stream': False,\n        'max_tokens': 64,\n    }\n    print('正常请求：')\n    r = ask_with_retry(payload)\n    print('  回答：', r['choices'][0]['message']['content'].strip())\n\n    print()\n    print('故意写错模型名（404，不可重试，应立刻抛出）：')\n    bad = dict(payload, model='not-exist-model')\n    try:\n        ask_with_retry(bad)\n    except urllib.error.HTTPError as e:\n        print('  立刻拿到 HTTP %d，没有进入等待' % e.code)\n"
+        },
+        {
+          type: "interactive",
+          lab: "agenttrace",
+          title: "实验台：一次超时、一次限流，第三次成功",
+          config: {
+            task: "调用模型接口：第一次读取超时，第二次被限流，第三次退避后成功",
+            steps: [
+              {
+                desc: "第一次尝试：请求发出，读取超时",
+                kind: "thought",
+                text: "超时设为 180 秒，覆盖「首次加载模型 + 生成」的最坏情况。超时属于可重试类。",
+                note: "超时设置要按最坏情况算：本机实测首次加载就要 1.4 秒以上，输出 200 token 要 1.892 秒，两者叠加已经是 3 秒以上。"
+              },
+              {
+                desc: "第一次结果：TimeoutError",
+                kind: "observation",
+                text: "读取超时：等待 180 秒没有收到完整响应。",
+                note: "注意一个陷阱：服务端可能其实还在算。重试会让它多做一份工，所以重试次数必须有限。"
+              },
+              {
+                desc: "第二次尝试：按退避策略等待约 1 秒后重试",
+                kind: "action",
+                text: "等待 1.0 × 2^0 + 抖动 ≈ 1.1 秒 → 重新请求",
+                note: "这是第一次重试，等待基数最小。注意加了抖动，避免与其他客户端撞在同一秒。"
+              },
+              {
+                desc: "第二次结果：被限流（429）",
+                kind: "observation",
+                text: "HTTPError 429：Too Many Requests。",
+                note: "429 是可重试类，但它明确说明「你刚才太频繁了」——这次必须等得更久，不能沿用上次的 1 秒。"
+              },
+              {
+                desc: "第三次尝试：退避时间翻倍",
+                kind: "action",
+                text: "等待 1.0 × 2^1 + 抖动 ≈ 2.2 秒 → 重新请求",
+                note: "这就是「指数」的含义：每失败一次等待翻倍。要是第 3 次也失败，下次就是约 4 秒。"
+              },
+              {
+                desc: "第三次结果：成功",
+                kind: "observation",
+                text: "200 OK，返回完整 JSON（含 choices、usage）。",
+                note: "总代价是约 3.3 秒的等待加两次真实请求，但比「直接失败」或「无限重试」都好得多。"
+              },
+              {
+                desc: "对照实验：如果模型名写错（404）",
+                kind: "thought",
+                text: "404 属于不可重试类。本机实测它在 0.022 秒就返回，说明请求在闸口就被挡下。",
+                note: "这类错误应该立刻抛出、让上层改配置。如果把它塞进重试循环，会变成一个拖了几十秒才报的「网络错误」，反而更难排查。"
+              },
+              {
+                desc: "收口：四条规则",
+                kind: "finish",
+                text: "① 先按状态码分类；② 只有可重试的才退避；③ 等待指数递增且有抖动；④ 总次数设上限，超了就如实报错。",
+                note: "这四条与具体服务商无关，是所有健壮客户端的骨架。"
+              }
+            ]
+          }
+        },
+        {
+          type: "pitfall",
+          title: "超时与重试的五个坑",
+          items: [
+            "对所有错误一律重试：404、401、400 重试一百次也是同样的结果，只会浪费时间并把真实错误藏起来。",
+            "超时按平均值设：本机实测 20 token 是 0.481 秒、200 token 是 1.892 秒，首次还要加载模型。按平均值设会让大量正常请求被误杀。",
+            "立刻重试不等待：服务过载时这正是压垮它的最后一击，也让你的成功率更低。",
+            "退避没有抖动：所有客户端在同一时刻重试，形成重试风暴，等于没退避。",
+            "重试次数不设上限：一个已经挂掉的服务会被反复捶打，你的程序也可能永远卡在重试里。"
+          ]
+        }
+      ],
+      quiz: [
+        {
+          id: "api-5-q1",
+          type: "single",
+          q: "本机实测：模型名写错时 0.022 秒就返回 404。这说明什么？",
+          options: ["网络很快", "请求在闸口就被挡下，根本没进模型，所以这类错误不该重试",
+          "模型很小所以快", "应该加大超时时间"],
+          answer: 1,
+          why: "正确项是 B：0.022 秒的响应说明它没走到模型计算那一段，是在鉴权/查表阶段就被拒绝了。这类错误重试无意义，应该改配置。A 只解释速度不解释含义。C 与模型大小无关。D 完全反了——问题不在超时太短。"
+        },
+        {
+          id: "api-5-q2",
+          type: "single",
+          q: "指数退避里加抖动的目的是？",
+          options: ["让代码更简单", "避免所有客户端在同一时刻重试形成重试风暴",
+          "增加总重试次数", "缩短等待时间"],
+          answer: 1,
+          why: "正确项是 B：若所有客户端用同样公式算出同样等待时长，它们会同时重试，把刚恢复的服务再次压垮。随机抖动能让节奏错开。A 说反了，抖动让计算更复杂。C、D 都与抖动目的无关。"
+        },
+        {
+          id: "api-5-q3",
+          type: "fill",
+          q: "本机实测输出 200 个 token 需要 1.892 秒，首次请求还要加载模型。按「最坏情况」设超时，应该比这些数字更（大 / 小）？",
+          answer: ["大", "更长", "大一些", "更大"],
+          why: "更大。超时要覆盖「最长提示 + 最长输出 + 最坏排队 + 首次加载」，再留安全余量（实践里常用最坏情况 × 2）。按平均值设会让大量正常请求被误判为失败。"
+        }
+      ],
+      checklist: [
+        "我能按状态码把错误分成可重试与不可重试两类，并说出各自处理方式",
+        "我能解释超时为什么要按最坏情况设，并举出本机的实测数字作依据",
+        "我能说清指数退避的两个理由，以及抖动解决的具体问题",
+        "我跑通了带分类、退避、抖动、上限的重试脚本，看到 404 立刻抛出而没进入等待"
+      ]
+    },
+
+    {
+      id: "api-6",
+      title: "token 计数与成本估算：钱是按词元算的",
+      goal: "能估出一次与多轮对话的词元数与费用，并说清输入输出分价与上下文累积如何推高账单。",
+      est: 35,
+      blocks: [
+        {
+          type: "concept",
+          title: "账单的两个乘数：词元数与单价",
+          md: "模型服务几乎都按**词元**（token，就是指模型读写文本的最小单位）计费，而且**输入与输出是两个不同的单价**，输出通常贵得多。\n\n原因在本课第一讲的六段流水线里：读提示（prefill）是算力受限、能批量处理；逐词元生成（decode）是带宽受限、每步都要重读全部权重。慢的那一段自然更贵。\n\n所以一次调用的费用是两项相加：\n\n- 输入：输入词元数 × 输入单价\n- 输出：输出词元数 × 输出单价\n\n还有一个容易被忽略的小项：**模板固定开销**。本机实测：即使只发一条极短的消息，请求也已经有 9 个词元的固定开销——那是聊天模板（角色标记、分隔符）占掉的。它小，但每次调用都有。"
+        },
+        {
+          type: "calc",
+          title: "手算演练：一次对话与一个月的账单",
+          inputs: [
+            { name: "本机实测", value: "5 轮对话的 prompt_tokens 依次为 22、86、150、214、278" },
+            { name: "单次调用", value: "输入 1000 词元 + 输出 300 词元" },
+            { name: "假设单价", value: "输入 1 美元/百万词元，输出 4 美元/百万词元" }
+          ],
+          outputs: [
+            "单次费用：1000 × 1 ÷ 1000000 = 0.001 美元；300 × 4 ÷ 1000000 = 0.0012 美元；合计 0.0022 美元",
+            "输出只占词元数的 23%，却占了 55% 的费用（0.0012 / 0.0022）",
+            "多轮实测：5 轮输入词元从 22 涨到 278，翻了 12 倍多——因为每轮都要把之前的问答全部重新送进去",
+            "5 轮的总输入词元 = 22 + 86 + 150 + 214 + 278 = 750；即使每轮输出只有 50 词元，总输入也远超单轮",
+            "若一天 1000 次单次调用：0.0022 × 1000 = 2.2 美元/天，约 66 美元/月"
+          ],
+          note: "单价数字只是示例，用来演示算法。真正的教训在第三行：多轮对话里输入词元随轮次**线性增长**，而每轮都要为「全部历史」付一次输入费用——所以长对话的成本是超线性的（第 n 轮要为前 n-1 轮再付一次钱）。"
+        },
+        {
+          type: "concept",
+          title: "为什么多轮对话越聊越贵",
+          md: "本机实测的那组数字最能说明问题：5 轮对话的输入词元是 22 → 86 → 150 → 214 → 278。每轮增加约 64 个词元（上一轮的问答）。\n\n这不是服务商的定价策略，而是「模型必须看到完整上下文才能继续」这个事实的必然结果。第 n 轮的输入 = 第 1 轮的全部内容 + 第 2 轮 + … + 第 n-1 轮 + 本轮问题。\n\n所以累计成本增长是：\n\n- 第 1 轮：付 22 个词元的输入\n- 第 5 轮：付 278 个词元的输入\n- 到第 5 轮为止，总共付了 750 个词元的输入（而不是只付「你实际说的那 5 句话」）\n\n这就是为什么「管理上下文」是成本优化的第一动作：清理无关历史、把长对话压成摘要、把稳定资料做成可复用的前缀。它不改代码逻辑，却能把随轮次线性增长的输入压成常数。"
+        },
+        {
+          type: "code",
+          lang: "python",
+          title: "纯标准库：用实测数据算成本",
+          code: "import math\n\n\ndef estimate_tokens(text):\n    '''粗略估词元数；本机实测中文约 1.54 到 3.00 字符/token，这里取保守值。\n\n    真实计数必须过分词器。这里只用于「数量级估算」与「不写死单价时的相对比较」。\n    '''\n    cjk = sum(1 for ch in text if '\\u4e00' <= ch <= '\\u9fff')\n    other = len(text) - cjk\n    return math.ceil(cjk / 1.54 + other / 4.0)\n\n\ndef cost(in_tok, out_tok, in_price, out_price):\n    '''单价单位：美元 / 百万词元。'''\n    return in_tok * in_price / 1e6 + out_tok * out_price / 1e6\n\n\nif __name__ == '__main__':\n    # 本机实测的 5 轮 prompt_tokens\n    measured_in = [22, 86, 150, 214, 278]\n    out_per_turn = 50\n    IN_P, OUT_P = 1.0, 4.0      # 示例单价\n\n    print('轮次  输入词元  输出词元   本轮费用    累计费用')\n    total = 0.0\n    for i, tok in enumerate(measured_in, 1):\n        c = cost(tok, out_per_turn, IN_P, OUT_P)\n        total += c\n        print(' %2d    %5d     %5d   %.6f   %.6f' % (i, tok, out_per_turn, c, total))\n\n    print()\n    print('5 轮总输入词元：', sum(measured_in))\n    print('若只算「用户实际说的 5 句话」（每句约 22 词元）：', 22 * 5)\n    print('多付了约 %.1f 倍' % (sum(measured_in) / (22 * 5)))\n\n    print()\n    print('模板固定开销对短请求的影响（本机实测 9 词元）：')\n    for user_tok in (5, 20, 100, 500):\n        real = user_tok + 9\n        print('  用户 %3d 词元 → 实际计费 %3d 词元（多付 %.0f%%）' % (user_tok, real, (9 / user_tok) * 100))\n"
+        },
+        {
+          type: "interactive",
+          lab: "datalab",
+          title: "实验台：用实测数字看账单怎么涨",
+          config: {
+            state: {
+              "精度说明": "输入词元用本机实测值（22/86/150/214/278），单价为演示用示例",
+              "当前轮次": "0",
+              "累计输入词元": "0",
+              "累计费用": "0.0"
+            },
+            steps: [
+              {
+                desc: "第 1 轮：输入 22 词元",
+                state: { "当前轮次": "1", "本轮输入词元": "22", "累计输入词元": "22", "累计费用": "约 0.000222 美元" },
+                note: "注意这 22 里已经有 9 个是模板固定开销——用户真正说的话其实只有十几词元。"
+              },
+              {
+                desc: "第 2 轮：输入 86 词元",
+                state: { "当前轮次": "2", "本轮输入词元": "86", "累计输入词元": "108", "累计费用": "约 0.000908 美元" },
+                note: "涨了 64：上一轮的问答全都要重新送进去。这一步就开始体现「多轮不免费」。"
+              },
+              {
+                desc: "第 3 轮：输入 150 词元",
+                state: { "当前轮次": "3", "本轮输入词元": "150", "累计输入词元": "258", "累计费用": "约 0.001708 美元" },
+                note: "每轮仍稳定增加约 64 词元，是线性增长——但每轮要为全部历史付一次钱。"
+              },
+              {
+                desc: "第 5 轮：输入 278 词元",
+                state: { "当前轮次": "5", "本轮输入词元": "278", "累计输入词元": "750", "累计费用": "约 0.004408 美元" },
+                note: "到第 5 轮，累计输入 750 词元，是「用户实际说的 5 句」（约 110 词元）的 6.8 倍。"
+              },
+              {
+                desc: "对照：如果每轮都清空历史、只带必要资料",
+                state: { "做法": "不传历史，只传本轮问题 + 一份固定资料", "每轮输入": "稳定在约 100 词元", "5 轮累计": "约 500 词元", "差别": "比 750 少三分之一，而且不会随轮次继续恶化" },
+                note: "这就是「管理上下文」的价值：把随轮次增长的成本压成常数。代价是模型失去对话记忆——所以常常用「摘要 + 最近几轮」折中。"
+              },
+              {
+                desc: "收口：三条省钱顺序",
+                state: { "第一条": "管上下文（清历史 / 做摘要 / 复用前缀）——不改逻辑，收益最大", "第二条": "限输出长度（max_tokens、提示要求简洁）——输出单价最高", "第三条": "换小模型或本地部署——会影响质量，最后才动" },
+                note: "顺序很重要：先做不影响质量的事，最后才动影响质量的旋钮。"
+              }
+            ]
+          }
+        },
+        {
+          type: "pitfall",
+          title: "成本估算的五个坑",
+          items: [
+            "按字数估词元：本机实测中文 1.54 到 3.00 字符/token，波动很大，只能得数量级。",
+            "以为输入输出同价：输出单价通常高得多（因为 decode 是带宽受限的慢操作），只算总词元会低估。",
+            "忽略模板固定开销：本机实测每次调用有 9 个词元的固定成本，短请求时这笔开销占比很高。",
+            "以为多轮和单轮一样贵：实测输入词元 22→278 翻了 12 倍，因为每轮都要付全部历史的输入费。",
+            "只看单价不看用量：单价低但日调用量大，总账单照样惊人。要按「日调用量 × 平均词元」估。"
+          ]
+        }
+      ],
+      quiz: [
+        {
+          id: "api-6-q1",
+          type: "single",
+          q: "为什么输出通常比输入贵？",
+          options: ["输出质量更高", "生成是逐词元的带宽受限操作，比读提示慢得多",
+          "输出要加密", "服务商想多赚钱"],
+          answer: 1,
+          why: "正确项是 B：读提示（prefill）能批量处理、算力受限所以快；生成（decode）每步都要重读全部权重、带宽受限所以慢，单位成本自然高。A 与质量无关。C、D 都不是机制解释。"
+        },
+        {
+          id: "api-6-q2",
+          type: "single",
+          q: "本机实测 5 轮对话输入词元是 22→86→150→214→278。这个增长说明什么？",
+          options: ["模型越用越聪明", "每轮都要把之前全部问答重新送进去，输入随轮次增长",
+          "单价在上涨", "服务端在缓存我的请求"],
+          answer: 1,
+          why: "正确项是 B：模型必须看到完整上下文才能继续，所以第 n 轮要把前 n-1 轮的问答全部重发一次。A 与模型能力无关。C 单价没变，变的是用量。D 与服务端缓存无关（缓存能省计算，但不能省你为输入词元付的钱）。"
+        },
+        {
+          id: "api-6-q3",
+          type: "fill",
+          q: "本机实测：即使只发一条极短消息，请求也已经有多少个词元的固定开销？（填数字）",
+          answer: ["9", "9 个", "九个", "9个"],
+          why: "9 个词元。这是聊天模板（角色标记、分隔符）占掉的开销，每次调用都有。它对长请求可忽略，但对极短请求（比如只问一个字）占比很高——批量做超短请求时要留意这笔固定成本。"
+        }
+      ],
+      checklist: [
+        "我能把一次调用拆成输入侧与输出侧两笔费用分别算",
+        "我能解释输出单价比输入高的机制原因",
+        "我能用实测数字说明多轮对话为什么越聊越贵",
+        "我知道模板固定开销的存在，以及管理上下文为什么是成本优化的第一动作"
+      ]
+    },
+
+    {
+      id: "api-7",
+      title: "多服务商与兼容层：换一家只改一行配置",
+      goal: "能说清主流接口形态的差异点，并把差异收进配置表，让换服务商不改业务代码。",
+      est: 40,
+      blocks: [
+        {
+          type: "analogy",
+          title: "万能转换插头",
+          md: "各国的插座形状不一样：英标三脚、欧标两圆、美标两扁。你不会为了每个国家重新买一台电脑，而是带一个**转换插头**——把「你的设备」与「当地插座」之间的差异，集中解决在一个小零件上。\n\n多服务商适配就是这件事。你的业务代码是「设备」，各家接口是「插座」，适配层是「转换插头」。差异被收进一个地方，业务代码完全不知道换到了哪家。\n\n要注意的是：转换插头能解决「形状」，解决不了「电压」。有的能力（比如工具调用的具体格式）差异太深，适配层只能显式暴露差异，而不是假装它们一样。"
+        },
+        {
+          type: "concept",
+          title: "三种常见形态，差异其实只有三处",
+          md: "把主流接口放在一起看，差异集中在三个位置：\n\n**位置一：路径**\n\n- 原生形态：「/api/chat」 或 「/api/generate」\n- OpenAI 兼容形态：「/v1/chat/completions」\n\n**位置二：输入结构**\n\n- 「chat」 形态：「messages」 数组，每条有 「role」 与 「content」（本机实测请求体 167 字节就含一条消息）\n- 「generate」 形态：单段 「prompt」 文本，没有角色概念\n- 「openai」 形态：也是 「messages」 数组，但参数名常有细微差别（如 「max_tokens」 对 「options.num_predict」）\n\n**位置三：响应取值路径**\n\n- 「chat」：「message.content」\n- 「generate」：「response」\n- 「openai」：「choices.0.message.content」\n\n就这三处。把这三处收进一张配置表，加两个小函数做翻译，你的主体代码就完全不需要知道用的是哪家。"
+        },
+        {
+          type: "concept",
+          title: "能力差异：统一得了的与统一不了的",
+          md: "适配层要诚实面对「哪些能统一、哪些不能」：\n\n**能统一**\n- 基础文本生成（messages 进、文本出）\n- 流式的帧格式（大体都是 SSE，终止标记不同但可归一化）\n- 用量字段（都能拿到输入输出词元数，只是字段名不同）\n\n**不能统一（只能显式声明）**\n- 工具调用的具体格式：有的用 「tools」 数组、有的用提示词约定、有的返回结构化 JSON\n- 结构化输出：有的原生支持 JSON schema，有的只能靠提示词要求\n- 多模态输入：图片是 URL、base64 还是文件 ID，各家不同\n- 上下文上限：从 4k 到几十万不等\n\n所以正确的适配层不只是「翻译请求」，还要有一张**能力表**：上层据此决定「这个任务能不能交给它」。把不支持的请求发过去，会得到莫名错误或静默降级，非常难排查。"
+        },
+        {
+          type: "code",
+          lang: "python",
+          title: "最小兼容层：配置表 + 两个翻译函数",
+          code: "import json\nimport urllib.request\n\n\n# 差异全部收进这张表，业务代码不出现任何一家的字段名\nPROVIDERS = {\n    'ollama-chat': {\n        'url': 'http://127.0.0.1:11434/api/chat',\n        'style': 'chat',\n        'supports': {'stream': True, 'tool_calling': True},\n    },\n    'ollama-openai': {\n        'url': 'http://127.0.0.1:11434/v1/chat/completions',\n        'style': 'openai',\n        'supports': {'stream': True, 'tool_calling': True},\n    },\n}\n\n\ndef build_body(style, model, messages, max_tokens):\n    '''统一入参 -> 各家请求体。'''\n    if style == 'chat':\n        return {'model': model, 'messages': messages, 'stream': False,\n                'options': {'num_predict': max_tokens}}\n    if style == 'openai':\n        return {'model': model, 'messages': messages, 'stream': False,\n                'max_tokens': max_tokens}\n    raise ValueError('未知风格：' + style)\n\n\ndef read_text(style, result):\n    '''各家响应 -> 统一取文本。'''\n    if style == 'chat':\n        return result['message']['content']\n    if style == 'openai':\n        return result['choices'][0]['message']['content']\n    raise ValueError('未知风格：' + style)\n\n\ndef read_usage(style, result):\n    '''各家用量字段 -> 统一结构（拿不到就返回 None）。'''\n    if style == 'chat':\n        return {'in': result.get('prompt_eval_count'),\n                'out': result.get('eval_count')}\n    if style == 'openai':\n        u = result.get('usage') or {}\n        return {'in': u.get('prompt_tokens'), 'out': u.get('completion_tokens')}\n    return None\n\n\ndef ask(provider_key, messages, max_tokens=64):\n    cfg = PROVIDERS[provider_key]\n    body = json.dumps(\n        build_body(cfg['style'], 'qwen2:1.5b', messages, max_tokens)\n    ).encode('utf-8')\n    req = urllib.request.Request(\n        cfg['url'], data=body, headers={'Content-Type': 'application/json'}\n    )\n    with urllib.request.urlopen(req, timeout=180) as resp:\n        result = json.loads(resp.read().decode('utf-8'))\n    return read_text(cfg['style'], result), read_usage(cfg['style'], result)\n\n\nif __name__ == '__main__':\n    msgs = [\n        {'role': 'system', 'content': '你是一个简洁的助手。'},\n        {'role': 'user', 'content': '用一句话解释缓存。'},\n    ]\n    for key in PROVIDERS:\n        try:\n            text, usage = ask(key, msgs)\n            print('[' + key + ']', text.strip())\n            print('           用量：', usage)\n        except Exception as e:\n            print('[' + key + '] 失败：', e)\n"
+        },
+        {
+          type: "interactive",
+          lab: "datalab",
+          title: "实验台：同一段对话，两种形态各长什么样",
+          config: {
+            state: {
+              "统一输入": "system（简洁助手）+ user（用一句话解释缓存）",
+              "目标形态": "（待选）",
+              "当前动作": "组装请求体"
+            },
+            steps: [
+              {
+                desc: "形态一：chat（原生 messages 数组）",
+                state: { "形态": "chat", "路径": "/api/chat", "输入字段": "model + messages + stream + options", "输出取值": "message.content", "用量字段": "prompt_eval_count / eval_count", "特点": "保留角色结构，最贴近对话本质" },
+                note: "注意用量字段叫 prompt_eval_count，与 OpenAI 的 prompt_tokens 不同——这就是适配层要翻译的第一处。"
+              },
+              {
+                desc: "形态二：openai 兼容",
+                state: { "形态": "openai", "路径": "/v1/chat/completions", "输入字段": "model + messages + stream + max_tokens", "输出取值": "choices[0].message.content", "用量字段": "usage.prompt_tokens / usage.completion_tokens", "特点": "路径与响应结构不同，但同样是 messages 数组" },
+                note: "差异集中在三处：路径多了 /v1/chat/completions、输出多套了一层 choices 数组、用量字段换了名字。"
+              },
+              {
+                desc: "对照：差异清单",
+                state: { "路径": "不同", "输入参数名": "options.num_predict 对 max_tokens", "输出取值路径": "message.content 对 choices[0].message.content", "用量字段": "prompt_eval_count 对 prompt_tokens", "结论": "四处差异，且都可用两张小表 + 两个函数吸收" },
+                note: "先列清单再写适配层，能让「加第三家」变成加一条配置，而不是全项目搜索替换。"
+              },
+              {
+                desc: "能力差异：不能统一的部分",
+                state: { "工具调用格式": "有的用 tools 数组、有的用提示词约定", "结构化输出": "有的原生 JSON schema、有的靠提示词", "多模态": "图片传 URL / base64 / 文件 ID 各家不同", "上下文上限": "从 4k 到几十万不等", "处理方式": "写进能力表，按声明分配而不是试" },
+                note: "这是适配层的诚实边界：转换插头能改形状，改不了电压。能力差异必须显式声明。"
+              },
+              {
+                desc: "收口：加一家新服务商要做什么",
+                state: { "第 1 步": "在 PROVIDERS 里加一条（路径 + 风格 + 能力表）", "第 2 步": "若风格是新的，加两个翻译函数的分支", "第 3 步": "跑一次自检确认取值正确", "业务代码改动": "零" },
+                note: "这就是兼容层的验收标准：加一家服务商，业务代码零改动。如果做不到，说明差异泄漏到了上层。"
+              }
+            ]
+          }
+        },
+        {
+          type: "pitfall",
+          title: "做兼容层的五个坑",
+          items: [
+            "以为「兼容」就是完全一样：路径、参数名、响应嵌套、用量字段、能力集合都可能不同。基础文本能统一，高级能力通常不能。",
+            "把差异散落在业务代码里：一处 if 判断服务商、一处改路径、一处改取值，最后没人敢改。差异必须收进配置表。",
+            "只适配请求不适配响应：请求发出去了，响应结构不同导致取值失败。两边都要翻译。",
+            "没有能力表：把不支持的工具调用请求发给不支持的提供商，得到莫名错误或静默降级，极难排查。",
+            "把 messages 压成 prompt 当默认方案：会丢掉角色结构、降低指令遵从度。能用 chat 就别降维。"
+          ]
+        }
+      ],
+      quiz: [
+        {
+          id: "api-7-q1",
+          type: "single",
+          q: "chat 形态与 generate 形态最本质的区别是什么？",
+          options: ["chat 更快", "chat 用带角色的消息数组，generate 用一段纯文本 prompt",
+          "generate 不支持流式", "chat 不需要指定模型"],
+          answer: 1,
+          why: "正确项是 B：chat 传 messages 数组、保留「谁是系统、谁是用户」的结构；generate 传单段 prompt、没有角色概念。A 与速度无关。C 错，generate 也能流式。D 错，两者都要指定模型。"
+        },
+        {
+          id: "api-7-q2",
+          type: "multi",
+          q: "不同服务商之间的差异，通常集中在哪些位置？（多选）",
+          options: ["请求路径", "参数名（如 options.num_predict 对 max_tokens）", "响应里文本与用量的所在位置", "TCP 协议版本"],
+          answer: [0, 1, 2],
+          why: "A、B、C 都是真实差异：路径不同、参数名不同、输出要经过 message.content 还是 choices[0].message.content、用量字段名也不同。D 错——它们都跑在同样的 HTTP/TCP 之上，传输层没有差别，差异全在应用层。"
+        },
+        {
+          id: "api-7-q3",
+          type: "fill",
+          q: "适配层里那张记录「这家支持什么、不支持什么」的表，通常叫什么表？（填两个字）",
+          answer: ["能力", "能力表", "特性", "能力清单"],
+          why: "能力表。它声明每家支持什么（流式、工具调用、结构化输出、上下文上限），上层据此把任务分配给能满足要求的服务商。没有它就只能靠试错，而试错的代价是线上莫名错误。"
+        }
+      ],
+      checklist: [
+        "我能说出三种形态在路径、输入、响应取值、用量字段上的具体差异",
+        "我能把差异收进配置表，让加一家新服务商时业务代码零改动",
+        "我能区分「适配层能统一的」与「必须显式声明的能力差异」",
+        "我知道把 messages 压成 prompt 会损失角色结构，不是默认选择"
+      ]
     }
   ]
 });
