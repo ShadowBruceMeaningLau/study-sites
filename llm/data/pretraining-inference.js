@@ -1329,17 +1329,11 @@ window.COURSE_PACKS.push({
           }
         },
         {
-          type: "steps",
-          title: "不要只看卡数，还要看这四件事",
-          items: [
-            { t: "第一件：单卡显存够不够装" , d: "参数 + 梯度 + 优化器状态 + 激活值。若参数本身就装不下，只能用模型并行（张量或流水）。" },
-            { t: "第二件：通信量有多大", d: "数据并行要 all-reduce 整个梯度，张量并行每层都要同步。通信量决定了加卡的实际收益。" },
-            { t: "第三件：互联带宽够不够", d: "同一台机器内的卡间带宽远高于跨机器。把通信最频繁的那种并行限制在机器内，是常见做法。" },
-            { t: "第四件：气泡能不能填满", d: "流水并行需要足够的微批次来填满流水线，否则大部分时间在等，加速比远达不到卡数。" }
-          ],
-          note: "这四件事的关系是递进的：装不下就必须切模型，切了模型就要看通信，通信受限就要看拓扑，用了流水就要看气泡。只报「我们用了多少张卡」是没有信息量的。"
-        },
-        {
+          type: "code",
+          lang: "python",
+          title: "三本账一起算：训练显存、单卡容量与通信量",
+          code: "# 手算分布式训练的三本账：显存、单卡容量、通信量（纯标准库）\nN = 7e9          # 参数量 70 亿\nBYTES_FP32 = 4   # 32 位精度：每参数 4 字节\nBYTES_FP16 = 2   # 16 位精度：每参数 2 字节\nOPT_STATES = 2   # Adam 额外保存的两份状态\n\n# 账一：训练要存的东西 = 权重 + 梯度 + 优化器状态（+ 激活值，这里不计）\ntrain_fp32 = N * BYTES_FP32 * (1 + 1 + OPT_STATES)\ntrain_fp16 = N * BYTES_FP16 * (1 + 1 + OPT_STATES)\nprint('账一：训练常驻显存（不含激活值）')\nprint('  fp32：', round(train_fp32 / 1e9, 1), 'GB')\nprint('  fp16：', round(train_fp16 / 1e9, 1), 'GB')\n\n# 账二：数据并行下，每张卡都要装下完整模型 -> 单卡放不下 80GB 的卡\nper_card_dp = train_fp16\nprint()\nprint('账二：数据并行每卡要装', round(per_card_dp / 1e9, 1), 'GB')\nprint('  80GB 的卡能不能装下？', '能' if per_card_dp <= 80e9 else '不能')\n\n# 账三：张量并行把单层切开，每卡只存 1/TP 的权重与梯度\nTP = 8\nper_card_tp = train_fp16 / TP\nprint()\nprint('账三：张量并行 TP=' + str(TP) + '，每卡约', round(per_card_tp / 1e9, 1), 'GB')\n\n# 账四：数据并行每轮要 all-reduce 一次完整梯度\ngrad_bytes = N * BYTES_FP16       # 梯度本身的大小\nprint()\nprint('账四：梯度本身', round(grad_bytes / 1e9, 1), 'GB')\nprint('  8 卡 all-reduce（ring 方式）每卡收发约', round(2 * grad_bytes * (TP - 1) / TP / 1e9, 1), 'GB')\n\nprint()\nprint('结论：训练显存是推理的好几倍；单卡装不下就只能切模型（张量或流水），')\nprint('      而切了模型之后，通信量会成为新的瓶颈。')"
+        },        {
           type: "pitfall",
           title: "关于分布式训练的四个误解",
           items: [
