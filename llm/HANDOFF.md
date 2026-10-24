@@ -7,10 +7,10 @@
 > 请先读 `llm/HANDOFF-NEXT.md`** —— 那份是本次专项的作战地图（含任务清单、前沿素材、
 > 执行陷阱、验收标准）。本文件仍是**写课程的规格与门禁权威**，两份配合使用。
 >
-> **★ 状态：站点主体已完工（2026-10-24 22:40）。** 24 门课 / 182 讲 / 162 实验 / 552 题，九道质量门 + 浏览器级验证全绿，五站集成完成并实测通过。
+> **★ 状态：站点已完工（2026-10-25 01:10）。** 24 门课 / 182 讲 / 162 实验 / 552 题，九道质量门 + 浏览器级验证全绿，五站集成完成并实测通过。
 > 本文件保留了"继续开发"的完整流程（§7）与规格（§5）——若要新增课程、修 bug 或迁移，照那些节做即可。
 >
-> 最后更新：2026-10-25 00:05（UTC+8）——新增 HANDOFF-NEXT.md；修掉文档里 `protoplab` 笔误（真实名是 `protolab`）
+> 最后更新：2026-10-25 01:10（UTC+8）——新增 HANDOFF-NEXT.md；修掉文档里 `protoplab` 笔误（真实名是 `protolab`）
 
 ---
 
@@ -33,9 +33,9 @@
 
 ## 2. 当前进度
 
-> **★ 站点已完工（2026-10-24 22:36）。** 之下"还需完成"部分保留作为历史记录，实际全部已完成、八道门 + 浏览器级验证全绿。
+> **★ 站点已完工（2026-10-25 01:10）。** 之下"还需完成"部分保留作为历史记录，实际全部已完成、九道门 + 浏览器级验证全绿。
 
-**已建成 24 门课 / 182 讲 / 162 实验 / 552 题 / 约 109 学时、八道质量门全绿、浏览器级验证通过、五站集成完成。**
+**已建成 24 门课 / 182 讲 / 162 实验 / 552 题 / 约 119 学时、九道质量门全绿、浏览器级验证通过、五站集成完成。**
 
 精确数字**必须实跑确认**（见 §7 第 1 步），不要信任何文档里的旧数字。
 
@@ -93,13 +93,18 @@
 
 ## 4. 课程清单与状态
 
-### 4.1 全部完成（23 门，实跑核对：`validate` = 23 门 / 166 课 / 146 实验 / 504 题 / 约 109 学时）
+### 4.1 全部完成（24 门，实跑核对：`validate` = 24 门 / 182 课 / 162 实验 / 552 题 / 约 119 学时）
 
-主线 A（9 门）：`llm-zero-basics`(6) · `python-basics-ai`(6) · `ml-dl-basics`(6) · `neural-networks`(7) · `tokenizer-vocab`(7) · `attention-transformer`(10) · `pretraining-inference`(8) · `frontier-models`(11) · `posttraining-alignment`(9)
+主线 A（9 门）：`llm-zero-basics`(6) · `python-basics-ai`(6) · `ml-dl-basics`(6) · `neural-networks`(8) · `tokenizer-vocab`(7) · `attention-transformer`(10) · `pretraining-inference`(9) · `frontier-models`(11) · `posttraining-alignment`(10)
 
-主线 B（9 门）：`prompt-engineering`(6) · `inference-api`(7) · `harness-anatomy`(9) · `agent-protocols-2026`(8) · `tool-calling`(7) · `rag`(8) · `finetuning-lora`(7) · `agent-core`(9) · `eval-harness`(7)
+主线 B（**10 门**）：`prompt-engineering`(6) · `inference-api`(7) · `harness-anatomy`(9) · `agent-protocols-2026`(9) · `tool-calling`(8) · `rag`(9) · `finetuning-lora`(8) · `agent-core`(10) · `eval-harness`(8) · **`agent-security`(7) ← 新增的安全门课**
 
-主线 C（5 门）：`project-rag`(6) · `project-cli-agent`(6) · `project-evals`(6) · `project-dsh-extension`(6) · `frontier-tracking`(4，终章)
+主线 C（5 门）：`project-rag`(6) · `project-cli-agent`(6) · `project-evals`(6) · `project-dsh-extension`(6) · `frontier-tracking`(4，终章，全站最后一门)
+
+> **2026-10-25 专项补全**（10 个子系统全部完成）：新增安全门课 `agent-security`；`proto-9` UHP 报文级契约；
+> `nn-8` 梯度消失/爆炸、`pre-9` 分布式训练；`ev-8` 业界公开基准、`ag-10` 子代理与任务委派；
+> `rag-9` 检索进阶、`tool-8` 工具规模化；`pt-10` DPO、`ft-8` 偏好微调。
+> 详见 `llm/HANDOFF-NEXT.md`。
 
 ### 4.2 收尾已完成（保留作历史记录）
 
@@ -134,7 +139,7 @@ node tools\audit-math.mjs
 node tools\check-python.mjs
 .\tools\verify-browser.ps1
 ```
-期望：`VALIDATE=0`、`合计：23 门课 / 166 课 / 144 实验 / 504 题`、其余全部 EXIT=0、浏览器验证"全部通过"。
+期望：`VALIDATE=0`、`合计：24 门课 / 182 课 / 162 实验 / 552 题`、其余全部 EXIT=0、浏览器验证"全部通过"。
 
 **新建课程后的接线**：在 `llm/index.html` 的 `data/*.js` 区块里加 `<script src="data/<id>.js"></script>`（**这是 Lead 的唯一工作，不要让子代理改 index.html**）。★ 加完必须跑 `smoke-test.mjs` 核对"课程数"——`validate` 发现不了漏接线（见 §2.1 缺陷 1）。
 
@@ -271,7 +276,7 @@ window.COURSE_PACKS.push({
 > ★ `project-dsh-extension` 的样本是 `D:\DeepseekHarness\DeepseekHarness_Project\1.deepseek_harness本地访问`（真实插件项目：`package.json` 的 `dsh.bundle`/`dsh.client`、`lib/index.js`、`lib/client.js`、`cordis.patch.yml`）。**只写你亲自读到的事实，课程正文不得出现本机路径。**
 ## 6. 质量门（每次改完必跑，全部 exit=0 才算过）
 
-### 6.1 八道门
+### 6.1 九道门
 
 ```powershell
 cd D:\ObsidianLocalLib\system1\DSH\2\llm
@@ -283,6 +288,7 @@ node tools\audit-independence.mjs      # 跨课指引 0 / 隐性回指 0
 node tools\audit-zero-basis.mjs        # 术语首现就地解释（--all 看全部命中）
 node tools\audit-math.mjs              # 每段 $...$ 用 KaTeX 真渲染
 node tools\check-python.mjs            # Python 代码块真实执行（纯标准库）
+node tools\audit-quiz-bias.mjs         # 测验位置偏置（答案不能扎堆在某个选项位）
 ```
 
 ### 6.2 浏览器级验证（改 UI 或新增 lab 后才需要）
@@ -424,5 +430,6 @@ git log --oneline -5
 | `llm/README.md` | 站点对外说明（三条主线、每讲结构、质量门清单） |
 | `llm/MATH-FORMULAS.md` | KaTeX 公式写法规范 |
 | `llm/tools/verify-token-growth.py` | 多轮词元增长的复现脚本 |
+| `llm/tools/verify-tool-count.py` | 工具数量 vs 同族近义对选择准确率影响的复现脚本（临时起本地 Ollama 跑对照） |
 | `ZERO-BASIS-STANDARD.md`（根） | 零基础友好度四条硬标准 + 两条编码红线 |
 | `OPTIMIZATION-REVIEW.md`（根） | 四个老站的体检报告（含 git init 建议，已落实） |
