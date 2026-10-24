@@ -121,6 +121,7 @@ node tools\audit-zero-basis.mjs
 | **math** | **首现未解释 0 处；后续「假设已懂」0 处**（23 门课全部清零） |
 | **cs** | 见 `node cs/tools/audit-zero-basis.mjs` 的合计行（剩余集中在大四专业课） |
 | **physics** | 逐波交付中；零基础层（《零基础物理入门》与普物五门）要求两项趋近 0，见 `node physics/tools/audit-zero-basis.mjs` |
+| **llm** | 开发中（W0 起）；高危术语表换成 LLM 专有词（token/注意力/嵌入/RLVR/LoRA/量化/工具调用/上下文窗口/MCP…），零基础层（《LLM 零基础入门》《Python 编程基础（AI 方向）》）要求两项趋近 0；另有 `audit-prereqs.mjs` 校验 need 引用（见 llm/CONTENT-SPEC.md §4） |
 
 已完成的专项修补记录：
 
