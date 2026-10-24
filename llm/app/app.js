@@ -11,7 +11,7 @@
     "frontier-models", "posttraining-alignment",
     "prompt-engineering", "inference-api", "harness-anatomy",
     "agent-protocols-2026", "tool-calling", "rag", "finetuning-lora",
-    "agent-core", "eval-harness",
+    "agent-core", "eval-harness", "agent-security",
     "project-rag", "project-cli-agent", "project-evals", "project-dsh-extension",
     "frontier-tracking"
   ];

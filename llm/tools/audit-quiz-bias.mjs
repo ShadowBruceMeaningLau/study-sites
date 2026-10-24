@@ -56,7 +56,10 @@ const worst = Math.max(...Object.entries(dist).map(([k, v]) => v / nS));
 console.log("  单选答案位置分布：" + [0, 1, 2, 3].map((k) => "ABCD"[k] + "=" + ((100 * (dist[k] || 0)) / nS).toFixed(1) + "%").join("  "));
 ok(dist[0] && dist[1] && dist[2] && dist[3], "四个位置都出现了正确答案");
 ok(worst <= 0.4, "任一位置占比不超过 40%（实测最高 " + (100 * worst).toFixed(1) + "%）", "重排失效或 PRNG 撞低位");
-ok(nS === 320, "单选总数 = " + nS + "（预期 320）");
+// 门禁只约束「覆盖率」，不锁死绝对题数——否则每加一门课都要改断言（这次从 320 涨到 336 就是因此失败）。
+// 真正要防的是「单选题突然大面积消失」：要求至少 300 道，且不少于带选项题总数的一半。
+ok(nS >= 300, "单选总数 = " + nS + "（下限 300）");
+ok(nS >= 0.5 * allOptQ.length, "单选题不少于带选项题的一半（" + nS + " / " + allOptQ.length + "）");
 
 // ---- B. 置换有效性 + 确定性 ----
 let badPerm = 0, nondet = 0;
