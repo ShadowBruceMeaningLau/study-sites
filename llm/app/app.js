@@ -9,11 +9,13 @@
     "llm-zero-basics", "python-basics-ai", "ml-dl-basics", "neural-networks",
     "tokenizer-vocab", "attention-transformer", "pretraining-inference",
     "frontier-models", "posttraining-alignment",
+    // 研究侧四门（2026-10-25 专项补全）：全部归主线 A，排在 B 线之前
+    "continual-learning", "self-evolution", "learning-algorithms",
     "prompt-engineering", "inference-api", "harness-anatomy",
     "agent-protocols-2026", "tool-calling", "rag", "finetuning-lora",
-    "agent-core", "eval-harness", "agent-security",
+    "agent-core", "memory-architecture", "eval-harness", "agent-security",
     "project-rag", "project-cli-agent", "project-evals", "project-dsh-extension",
-    "frontier-tracking"
+    "frontier-tracking", "frontier-radar"
   ];
   // 主线排序：让"学习路径"按三条主线展示（想调整顺序改这里即可）
   var TERM_ORDER = [

@@ -36,6 +36,19 @@ $routes = [ordered]@{
   "course-llm0" = "/c/llm-zero-basics"
   "lesson-llm0-tok"  = "/c/llm-zero-basics/llm0-token"
   "lesson-llm0-temp" = "/c/llm-zero-basics/llm0-temperature"
+  # 2026-10-25 coverage sweep: four new courses + the new final chapter.
+  # These exist to prove the new data files are ACTUALLY wired into index.html
+  # (validate reads the disk and cannot see a missing <script src>).
+  "course-radar"    = "/c/frontier-radar"
+  "lesson-radar-1"  = "/c/frontier-radar/radar-1"
+  "lesson-radar-4"  = "/c/frontier-radar/radar-4"
+  "course-continual" = "/c/continual-learning"
+  "lesson-cl-1"     = "/c/continual-learning/cl-1"
+  "course-selfevo"  = "/c/self-evolution"
+  "course-memory"   = "/c/memory-architecture"
+  "lesson-mem-2"    = "/c/memory-architecture/mem-2"
+  "course-lalg"     = "/c/learning-algorithms"
+  "lesson-lalg-2"   = "/c/learning-algorithms/lalg-2"
 }
 
 foreach ($name in $routes.Keys) {

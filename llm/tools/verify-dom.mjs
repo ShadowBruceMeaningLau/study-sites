@@ -22,7 +22,19 @@ const EXPECT = {
   roadmap: ["验收判据"],
   "course-llm0": ["LLM 零基础入门", "lesson-row", "学这门课之前"],
   "lesson-llm0-tok": ["lab-token-cell", "随堂测验", "qcard"],
-  "lesson-llm0-temp": ["lab-samp", "qcard"]
+  "lesson-llm0-temp": ["lab-samp", "qcard"],
+  // 2026-10-25 覆盖度专项：新增 5 门课必须真的被浏览器加载出来。
+  // 断言里刻意带上「只有该课才有的字符串」，防止路由串到别的课也「通过」。
+  "course-radar": ["前沿雷达", "lesson-row", "学这门课之前"],
+  "lesson-radar-1": ["跟进为什么会失败", "交互实验", "qcard"],
+  "lesson-radar-4": ["维护判断框架", "qcard"],
+  "course-continual": ["持续学习", "lesson-row", "学这门课之前"],
+  "lesson-cl-1": ["稳定性", "交互实验", "qcard"],
+  "course-selfevo": ["自进化", "lesson-row", "学这门课之前"],
+  "course-memory": ["Agent 记忆架构", "lesson-row"],
+  "lesson-mem-2": ["记忆是树", "qcard"],
+  "course-lalg": ["下一代学习算法", "lesson-row"],
+  "lesson-lalg-2": ["优化器", "qcard"]
 };
 
 let fail = 0;

@@ -137,6 +137,45 @@ for (const { course } of packs) {
     if (hit && hit.id !== course.id) edges.push(course.id + " -> " + hit.id);
   }
 }
+
+// 6) 术语表 where 字段里的课名也必须解析到站内真实课程。
+//    为什么加这条：where 是给学生「回去补这一讲」用的指路，课名写错就指向一门不存在的课，
+//    而页面不会报错、只是点不过去。真实踩过：「Agent 协议生态 2026」「前沿模型专题 2026」
+//    两处与真实 title 不一致（真实的是带全角括号的「（2026-10）」形态）。
+const GLOSSARY = join(SITE, "app", "glossary.js");
+let glossaryChecked = 0;
+try {
+  const gsrc = readFileSync(GLOSSARY, "utf8");
+  const win = {};
+  // glossary.js 是 IIFE，把 window 传进去就能拿到 GLOSSARY
+  new Function("window", gsrc)(win);
+  const cats = (win.GLOSSARY && win.GLOSSARY.cats) || [];
+  const badWhere = [];
+  for (const c of cats) {
+    for (const it of c.items || []) {
+      const where = (it.where || "").trim();
+      if (!where) continue;
+      glossaryChecked++;
+      const body = where.split(/\s*·\s*/)[0].trim();
+      // 允许「课名 · 第 N 讲」与「课名」两种写法；课名必须命中 title / id / 别名
+      const norm = body.replace(/\s+/g, "");
+      if (!byTitle.get(norm) && !byId.get(body) && !byTitle.get(norm.replace(/（第\s*\d+\s*讲）$/, ""))) {
+        badWhere.push(c.cat + " / " + it.t + " → 「" + body + "」");
+      }
+    }
+  }
+  if (badWhere.length) {
+    errors += badWhere.length;
+    console.log("\n【术语表 glossary.js】where 里的课名解析不到站内课程 " + badWhere.length + " 处：");
+    for (const b of badWhere) console.log("   ✗ " + b);
+  } else {
+    console.log("术语表 where 校验：" + glossaryChecked + " 条出处全部解析到站内真实课名。");
+  }
+} catch (e) {
+  warnings++;
+  console.log("[警告] 术语表 where 校验跳过：" + e.message);
+}
+
 console.log("\n前置 DAG：共 " + edges.length + " 条有向边（" + new Set(edges).size + " 条去重后）");
 console.log("合计：错误 " + errors + " 处；警告 " + warnings + " 处");
 
