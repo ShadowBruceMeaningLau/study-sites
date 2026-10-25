@@ -9,12 +9,14 @@
 
 ## 1. 一句话现状
 
-`llm/` 站点已建成 **24 门课 / 182 讲 / 162 实验 / 552 题**，九道质量门全绿，浏览器级验证通过，五站（8123~8127）全部 HTTP 200。
+`llm/` 站点已建成 **29 门课 / 217 讲 / 197 实验 / 657 题**，九道质量门全绿，浏览器级验证通过，五站（8123~8127）全部 HTTP 200。
 
-**但严格审计后发现两类问题**，本专项就是修它们：
+两个专项都已完成：
+- **专项一（§4 任务清单 0~8）**：补安全门课、修 UHP 事实错误、补 7 个缺失概念 —— 全部 ✅，见 §9。
+- **专项二（§9.1）**：按「下一代范式研究」的 14 个方向做覆盖度核查后，新建 5 门课、补 3 讲、加 1 道校验门 —— 全部 ✅，见 §9.1。
 
-- **一类是事实错误**：站内说「UHP 规范截至 2026-10 未核到可引用原文」，而实际规范已于 **2026-10-19 完整发布**（15 章，Apache-2.0，有 conformance suite 与参考实现）。
-- **一类是覆盖缺口**：安全对抗（提示注入/红队/供应链）**全站 0 处**；DPO、业界公开基准、分布式训练、梯度消失、子代理委派、查询改写等 7 个概念缺失或仅顺带提及。
+**本文件在专项完成后仍然有用**：它保留了「怎么正确地往这个站里加内容」的全部规格、
+红线与踩过的坑（§3~§7），任何后续扩容都该先读它。
 
 ---
 
@@ -289,17 +291,20 @@ $o = node tools\validate-curriculum.mjs 2>&1; "EXIT=$LASTEXITCODE"; $o | Select-
 ```powershell
 cd D:\ObsidianLocalLib\system1\DSH\2\llm
 $o = node tools\validate-curriculum.mjs 2>&1; "VALIDATE=$LASTEXITCODE"; $o | Select-String '合计|✗'
-# 期望：24 门课 / 182 讲 / 162 实验 / 552 题
+# 期望：29 门课 / 217 讲 / 197 实验 / 657 题
 # 其余八道门全部 EXIT=0
 .\tools\verify-browser.ps1    # 期望「浏览器级验证全部通过」
 ```
 
-**专项验收（这四条是本次特有的，普通门查不出）**：
+**专项验收（这六条是专项特有的，普通门查不出）**：
 
-1. `smoke-test` 报「课程数 = 24」（证明新课程**真被浏览器加载**了，不是只躺在磁盘上）。
+1. `smoke-test` 报「课程数 = 29」（证明新课程**真被浏览器加载**了，不是只躺在磁盘上）。
 2. 学习路径页按 A → B → C 顺序显示（不是 A → C → B）。
 3. `node tools/audit-quiz-bias.mjs` 通过（新题会引入新的答案位置偏置，任一位置不得超过 40%）。
 4. 人工复核 `agent-protocols-2026.js` 里**不再有**「未核到可引用规范原文」这类过期表述。
+5. `node tools/audit-prereqs.mjs` 报「术语表 where 校验：146 条出处全部解析到站内真实课名」。
+6. `node tools/verify-frontier-feed.py` 在**离线**状态下也 EXIT=0（它是 `frontier-radar` 的配套脚本，
+   必须有降级路径，否则会在没有外网的机器上制造假失败）。
 
 ---
 
@@ -322,15 +327,98 @@ $o = node tools\validate-curriculum.mjs 2>&1; "VALIDATE=$LASTEXITCODE"; $o | Sel
 
 ---
 
+## 9.1 ★ 覆盖度专项（2026-10-25 第二阶段，研究侧补全）
+
+### 9.1.1 为什么要做这个专项
+
+对照一张「下一代范式研究」的招聘方向清单（持续 scaling / 下一代架构 / 下一代学习算法 /
+long horizon agent / PEFT / 自进化 / 持续学习 / 范式缺陷与下一范式 / agentic memory /
+memory architecture / self distillation / auto research·AI for AI / optimizer / 前沿实验室成果），
+逐项在 `data/*.js` 里做字面 + 语义双重核查（关键词命中已人工复核假阳性——
+例如「动量」10 次全是「波动量级」，「Lion」2 次是 billion 的子串）。
+
+**核查结果（重构前）**：14 项里 **2 项强覆盖 / 5 项半覆盖 / 7 项空白**。
+- 强：持续 scaling（scaling law / 6ND / 去重配比 / 三并行）、下一代架构（MoE 13 / 稀疏 29 / MLA 10 / MTP 12 / 原生多模态 9）
+- 空白：持续学习（0）、自进化（0）、范式批判（0）、agentic memory（0）、self distillation（0）、auto research（0）、optimizer 研究向（0）
+- 另有一项**独立空白**：**「如何始终、持续跟进前沿」**——站内原只有 track-4 里一段 40 分钟周清单，有建议、无制度，有清单、无管线，有原则、无工具。
+
+### 9.1.2 新增的 5 门课
+
+| 课程 | 主线 | 讲数 | 解决哪个空白 |
+|---|---|---|---|
+| `frontier-radar` 📡《前沿雷达：怎么始终、持续地跟住前沿》 | C（新终章） | 7 | **跟进前沿的制度化**：三种失效模式 → 四段式信息管线 → 三判据降噪 → 五判据识范式 → agent 替你盯 → 卡片与衰减 → 三档节奏与反脆弱 |
+| `continual-learning` 🧬《持续学习》 | A | 6 | 稳定性—可塑性权衡 / 遗忘三来源 / 三条对抗路线 / 持续预训练 vs 微调 / 遗忘矩阵 / 在线适应与边界诚实 |
+| `self-evolution` ♻️《自进化与 AI for AI》 | A | 7 | 四种闭环 / 拒绝采样三笔账 / 合成数据三风险 / 自蒸馏 / 自博弈 / auto research 四步闭环 / 边界与治理 |
+| `learning-algorithms` ⚙️《下一代学习算法》 | A | 6 | 优化器在改什么 / 谱系与取舍（AdamW·Lion·Muon·Shampoo）/ 调度与稳定性 / 超参迁移 / 不用反向传播的三条路 / 元学习与测试时适应 |
+| `memory-architecture` 🗄️《Agent 记忆架构》 | B | 6 | 上下文管理≠记忆 / 记忆是树 / 六类记录与引用 / 授权与截断 / 四个时机（prime·tools·observe·consolidate）/ 安全与诚实 |
+
+### 9.1.3 新增的 3 个补讲
+
+- `ag-11`「小时级到天级的无人值守：压缩、预算、漂移与自检」——补 long horizon 的真缺口。
+  与 ag-7 的分工：**ag-7 讲「被打断之后怎么接着跑」，ag-11 讲「没人看着的时候怎么不跑偏」**。
+- `hx-10`「提示缓存与上下文工程的成本账」——原站 `提示缓存`/`prompt cache` 全 0。
+- `fm-12`「实验室路线对比：同一份算力预算的不同押注」——只写机制取向与可核结构事实，
+  不比较强弱、不引跑分排名。
+
+### 9.1.4 配套工程改动
+
+1. **术语表** 108 → **146 条**，11 → **16 分类**，新增分类：持续学习与遗忘 / 自进化与合成数据 /
+   Agent 记忆架构 / 学习算法与优化器 / 跟进前沿的方法。
+2. **新增一道校验**：`audit-prereqs.mjs` 现在会校验术语表 `where` 里的课名必须解析到站内真实课程。
+   **真实前科**：`where` 曾写成「Agent 协议生态 2026」「前沿模型专题 2026」，
+   而真实 title 是带全角括号的「（2026-10）」形态——页面不报错，只是点不过去。
+3. **`smoke-test` 门槛上调**：`must` 29 门、`labCount >= 180`、`qCount >= 610`（按实测留 5% 余量）。
+4. **`verify-browser.ps1` / `verify-dom.mjs` 加 10 条新路由**：
+   断言里刻意带上只有该课才有的字符串，防止路由串到别的课也「通过」。
+   这一步是必需的——**`validate` 直接读磁盘，查不出 `index.html` 漏了 `<script src>`**（§7.7 的前科）。
+5. **新增 `tools/verify-frontier-feed.py`**：给 `frontier-radar` 第 2/7 讲配套的可跑脚本。
+   它的核心纪律就是课程正文强调的那条：**只把「拿到了但条目为 0」判为故障；无网一律跳过、不判错**，
+   所以它能安全进 `check-python`（离线自动降级）。
+
+### 9.1.5 本轮踩到并已写进工具的坑
+
+1. **接线早于落盘 → smoke-test 假失败**：我先把 4 门还没落盘的课写进 `index.html`，
+   `smoke-test` 立刻报 ENOENT。教训：**接线必须等文件真落盘之后**，否则你会在自己制造的假红里排查。
+2. **子代理一次写整门课必然耗尽输出预算**（7 次里失败 5 次，零产出）。
+   有效粒度是 **每次 1~2 讲**，并且**不要让它读 CONTENT-SPEC/参考课程**——
+   把骨架、block 类型、quiz 形态直接写进派发消息，它才写得完。
+3. **`edit` 写含 `\n` 转义的 JS 字符串会毁文件**：我手工改 `project-rag` 的 python 块时
+   把 `\n` 写成了真实换行，直接把 JS 字符串截断。正确做法是**用脚本做子串替换**，
+   或用 `write` 整份重写；改完必须 `node --check`。
+4. **Windows 控制台是 GBK**：python 脚本 `print("✓")` 会抛 `UnicodeEncodeError`。
+   修法是开头 `sys.stdout.reconfigure(encoding="utf-8", errors="replace")`。
+
+### 9.1.6 收口后状态（实跑）
+
+```
+29 门课 / 217 讲 / 197 实验 / 657 题 / 约 141 学时
+validate / smoke-test / smoke-fixture / audit-prereqs / audit-independence
+/ audit-zero-basis / audit-math / check-python / audit-quiz-bias  全部 EXIT=0
+浏览器级验证：21 个路由全部渲染通过（含 5 门新课程）
+```
+
+### 9.1.7 仍然成立的边界（诚实清单）
+
+- `web_search` 走 DeepSeek 检索端点，**当前 402 余额不足**；`web_fetch` 与 `pwsh` 直连可用
+  （arXiv API、OpenAlex、GitHub API、Crossref、UHP 规范站均实测 200）。
+  所以检索类内容一律「机制 + 判据 + 截至 2026-10」写法，核不到原句就不写。
+- 「跟进前沿」这门课教的是**方法**，不是结论：它不承诺让你跟住所有方向，
+  明确写了「一个方向一手、其余二手、框架持续维护」这个取舍。
+
+---
+
 ## 10. 文档索引
 
 | 文件 | 作用 |
 |---|---|
-| `llm/HANDOFF.md` | **项目主文档**：23 门课清单、写课规格、质量门、历史坑、本机环境事实 |
-| `llm/HANDOFF-NEXT.md` | **本文件**：本次专项作战地图 |
+| `llm/HANDOFF.md` | **项目主文档**：29 门课清单、写课规格、九道门、历史坑、本机环境事实 |
+| `llm/HANDOFF-NEXT.md` | **本文件**：两个专项（安全/事实/概念补全 §4~§9，覆盖度 §9.1）的作战地图 |
 | `llm/CONTENT-SPEC.md` | 数据契约唯一权威 |
 | `llm/AUTHOR-BRIEF.md` | 各课 id/讲目/元信息速查 |
 | `llm/MATH-FORMULAS.md` | KaTeX 写法规范 |
 | `llm/README.md` | 站点对外说明 |
+| `llm/tools/verify-frontier-feed.py` | 信息源「活着检查」脚本（`frontier-radar` 配套，离线可降级） |
+| `llm/tools/verify-token-growth.py` | 多轮词元增长复现脚本 |
+| `llm/tools/verify-tool-count.py` | 工具数量 vs 同族近义对选择准确率影响的复现脚本 |
 
 **本机环境事实**（写「本机实测」时用）：RTX 4060 Laptop 8GB；Ollama 在线 `127.0.0.1:11434`，已装 `qwen2:1.5b`、`mxbai-embed-large`；Node v24；Python 3.14 **无 numpy/torch**（课程代码必须纯标准库）；五站端口 8123~8127。

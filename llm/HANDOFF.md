@@ -7,7 +7,7 @@
 > 请先读 `llm/HANDOFF-NEXT.md`** —— 那份是本次专项的作战地图（含任务清单、前沿素材、
 > 执行陷阱、验收标准）。本文件仍是**写课程的规格与门禁权威**，两份配合使用。
 >
-> **★ 状态：站点已完工（2026-10-25 01:10）。** 24 门课 / 182 讲 / 162 实验 / 552 题，九道质量门 + 浏览器级验证全绿，五站集成完成并实测通过。
+> **★ 状态：站点已完工（2026-10-25 08:05，含覆盖度专项第二阶段）。** 29 门课 / 215 讲 / 195 实验 / 651 题 / 约 140 学时，九道质量门 + 浏览器级验证全绿，五站集成完成并实测通过。
 > 本文件保留了"继续开发"的完整流程（§7）与规格（§5）——若要新增课程、修 bug 或迁移，照那些节做即可。
 >
 > 最后更新：2026-10-25 01:10（UTC+8）——新增 HANDOFF-NEXT.md；修掉文档里 `protoplab` 笔误（真实名是 `protolab`）
@@ -35,7 +35,7 @@
 
 > **★ 站点已完工（2026-10-25 01:10）。** 之下"还需完成"部分保留作为历史记录，实际全部已完成、九道门 + 浏览器级验证全绿。
 
-**已建成 24 门课 / 182 讲 / 162 实验 / 552 题 / 约 119 学时、九道质量门全绿、浏览器级验证通过、五站集成完成。**
+**已建成 29 门课 / 217 讲 / 197 实验 / 657 题 / 约 141 学时、九道质量门全绿、浏览器级验证通过、五站集成完成。**
 
 精确数字**必须实跑确认**（见 §7 第 1 步），不要信任何文档里的旧数字。
 
@@ -65,7 +65,7 @@
 | 五站同起 | 根目录 `start-all.cmd` / `start-tray.vbs` | 已集成 8127 |
 | 引擎 | `llm/app/*.js` | 从 cs 复制的**独立副本**，不跨目录引用 |
 | 课程数据 | `llm/data/*.js` | 每门课一个文件 |
-| 课程顺序 | `llm/app/app.js` 顶部 `ORDER` | 23 个 id 已登记 |
+| 课程顺序 | `llm/app/app.js` 顶部 `ORDER` | 29 个 id 已登记 |
 | 课程主线 | `term` 三个合法值 | 见 §5.1 |
 
 ### 3.1 三条编码红线（每条都踩过坑）
@@ -93,18 +93,23 @@
 
 ## 4. 课程清单与状态
 
-### 4.1 全部完成（24 门，实跑核对：`validate` = 24 门 / 182 课 / 162 实验 / 552 题 / 约 119 学时）
+### 4.1 全部完成（29 门，实跑核对：`validate` = 29 门 / 215 课 / 195 实验 / 651 题 / 约 140 学时）
 
-主线 A（9 门）：`llm-zero-basics`(6) · `python-basics-ai`(6) · `ml-dl-basics`(6) · `neural-networks`(8) · `tokenizer-vocab`(7) · `attention-transformer`(10) · `pretraining-inference`(9) · `frontier-models`(11) · `posttraining-alignment`(10)
+主线 A（**13 门**）：`llm-zero-basics`(6) · `python-basics-ai`(6) · `ml-dl-basics`(6) · `neural-networks`(8) · `tokenizer-vocab`(7) · `attention-transformer`(10) · `pretraining-inference`(9) · `frontier-models`(12) · `posttraining-alignment`(10) · **`continual-learning`(6)** · **`self-evolution`(7)** · **`learning-algorithms`(6)** — 后三门为 2026-10-25 覆盖度专项新增
 
-主线 B（**10 门**）：`prompt-engineering`(6) · `inference-api`(7) · `harness-anatomy`(9) · `agent-protocols-2026`(9) · `tool-calling`(8) · `rag`(9) · `finetuning-lora`(8) · `agent-core`(10) · `eval-harness`(8) · **`agent-security`(7) ← 新增的安全门课**
+主线 B（**11 门**）：`prompt-engineering`(6) · `inference-api`(7) · `harness-anatomy`(10) · `agent-protocols-2026`(9) · `tool-calling`(8) · `rag`(9) · `finetuning-lora`(8) · `agent-core`(11) · **`memory-architecture`(6)** · `eval-harness`(8) · `agent-security`(7)
 
-主线 C（5 门）：`project-rag`(6) · `project-cli-agent`(6) · `project-evals`(6) · `project-dsh-extension`(6) · `frontier-tracking`(4，终章，全站最后一门)
+主线 C（**6 门**）：`project-rag`(6) · `project-cli-agent`(6) · `project-evals`(6) · `project-dsh-extension`(6) · `frontier-tracking`(4) · **`frontier-radar`(7) ← 新终章，全站最后一门**
 
 > **2026-10-25 专项补全**（10 个子系统全部完成）：新增安全门课 `agent-security`；`proto-9` UHP 报文级契约；
 > `nn-8` 梯度消失/爆炸、`pre-9` 分布式训练；`ev-8` 业界公开基准、`ag-10` 子代理与任务委派；
 > `rag-9` 检索进阶、`tool-8` 工具规模化；`pt-10` DPO、`ft-8` 偏好微调。
 > 详见 `llm/HANDOFF-NEXT.md`。
+>
+> **2026-10-25 覆盖度专项**（研究侧补全，详见 HANDOFF-NEXT §11）：对照「下一代范式研究」的 14 个方向逐项核查后，
+> 新建 5 门 `frontier-radar` / `continual-learning` / `self-evolution` / `learning-algorithms` / `memory-architecture`，
+> 补讲 `ag-11`（小时级无人值守）、`hx-10`（提示缓存成本账）、`fm-12`（实验室路线对比）；
+> 术语表 108→146 条、11→16 分类；`audit-prereqs` 新增「术语表 where 课名必须解析」门。
 
 ### 4.2 收尾已完成（保留作历史记录）
 
@@ -119,9 +124,9 @@
 
 1. ✅ 删 `llm/data/_placeholder.js` + `index.html` 引用（ORDER 里本就没有它）
 2. ✅ 清理 `_scratch_*` / `_blk_*` / `_tmp_*` / `_*_tail.txt`（0 个残留）
-3. ✅ `llm/README.md` 已写"三条主线 23 门课"
-4. ✅ 根 `README.md` 五站表 llm 行已更新为 23 门 / 163 讲（实跑数字见 §2）
-5. ✅ `smoke-test.mjs` 门槛收口：`must` 列全 23 门主干、`labCount >= 130`、`qCount >= 450`
+3. ✅ `llm/README.md` 已写"三条主线 29 门课"
+4. ✅ 根 `README.md` 五站表 llm 行已更新为 29 门 / 217 讲（实跑数字见 §2）
+5. ✅ `smoke-test.mjs` 门槛收口：`must` 列全 29 门主干、`labCount >= 180`、`qCount >= 610`
 6. ✅ 五站同起实测：8123~8127 全部 HTTP 200；停服后 5 个端口全部释放
 7. ✅ 最终 commit
 
@@ -139,7 +144,7 @@ node tools\audit-math.mjs
 node tools\check-python.mjs
 .\tools\verify-browser.ps1
 ```
-期望：`VALIDATE=0`、`合计：24 门课 / 182 课 / 162 实验 / 552 题`、其余全部 EXIT=0、浏览器验证"全部通过"。
+期望：`VALIDATE=0`、`合计：29 门课 / 217 课 / 197 实验 / 657 题`、其余全部 EXIT=0、浏览器验证"全部通过"。
 
 **新建课程后的接线**：在 `llm/index.html` 的 `data/*.js` 区块里加 `<script src="data/<id>.js"></script>`（**这是 Lead 的唯一工作，不要让子代理改 index.html**）。★ 加完必须跑 `smoke-test.mjs` 核对"课程数"——`validate` 发现不了漏接线（见 §2.1 缺陷 1）。
 

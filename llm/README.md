@@ -27,7 +27,7 @@
 
 ---
 
-## 2. 学什么：三条主线 24 门课
+## 2. 学什么：三条主线 29 门课
 
 **主线 A · LLM 基础与原理（零基础 → Transformer → 2026 前沿）**
 
@@ -42,6 +42,9 @@
 | 预训练与推理 | 先学「注意力与 Transformer」 | scaling law/KV cache/采样（samplab） |
 | ★前沿模型专题 2026 | 先学「注意力与 Transformer」 | 混合注意力/DSA/多 token 预测/量化部署 4060 实战 |
 | ★后训练与对齐前沿 | 先学「机器学习与深度学习基础」 | SFT→RLHF→RLVR/GRPO/测试时计算/推理模型 |
+| ★持续学习 | 先学「微调入门」「后训练与对齐前沿」 | 稳定性—可塑性权衡/遗忘三来源/EWC/回放/参数隔离/遗忘矩阵 |
+| ★自进化与 AI for AI | 先学「后训练与对齐前沿」「评测 Harness」 | 四种闭环/拒绝采样三笔账/合成数据三风险/自蒸馏/自博弈/auto research |
+| ★下一代学习算法 | 先学「机器学习与深度学习基础」「神经网络」 | 优化器谱系（AdamW/Lion/Muon）/调度稳定性/超参迁移/不用反向传播的三条路 |
 
 **主线 B · 工程与 Harness（调用 → 框架 → 评测）**
 
@@ -49,13 +52,15 @@
 |---|---|---|
 | 提示词工程 | 先学「LLM 零基础入门」 | few-shot/CoT/角色/结构化输出 |
 | 推理 API 与流式输出 | 先学「Python 编程基础」 | OpenAI 兼容/SSE 手写解析/重试超时（对本地 Ollama） |
-| ★Harness 解剖 | 先学「推理 API 与流式输出」 | harness 管什么；DeepSeek Harness 开源；真品 DSH 解剖；写最小 harness 骨架 |
+| ★Harness 解剖 | 先学「推理 API 与流式输出」 | harness 管什么；DeepSeek Harness 开源；真品 DSH 解剖；写最小 harness 骨架；提示缓存成本账 |
 | ★Agent 协议生态 2026 | 先学「Harness 解剖」 | UHP/MCP/A2A/ACP/AG-UI 边界与组合（protolab） |
 | 工具调用 | 先学「推理 API 与流式输出」 | tool schema/JSON Schema 校验/参数循环 |
 | RAG | 先学「推理 API 与流式输出」 | 切分/嵌入/检索/重排（ragsteps+纯 Python 小实现） |
 | 微调入门 | 先学「后训练与对齐前沿」 | SFT/LoRA 原理与数据构造（真实脚本标环境要求） |
-| Agent 核心 | 先学「工具调用」 | ReAct/规划/多 agent 分工/工具安全与沙箱/GUI agent 边界 |
+| Agent 核心 | 先学「工具调用」 | ReAct/规划/多 agent 分工/工具安全与沙箱/无人值守/GUI agent 边界 |
+| ★Agent 记忆架构 | 先学「Agent 核心」「Agent 协议生态 2026」 | 记忆树/六类记录/授权与截断/四个时机（prime·tools·observe·consolidate） |
 | 评测 Harness | 先学「Agent 核心」 | 基准/打分器/给自家 agent 写回归评测 |
+| ★Agent 安全 | 先学「Agent 核心」「Harness 解剖」 | 攻击面/提示注入/供应链/产物即攻击面/凭证隔离/红队 |
 
 **主线 C · 实战与前沿追踪（学完就能开发）**
 
@@ -66,6 +71,7 @@
 | 项目 3：给自己的 Agent 写评测 | 先学「评测 Harness」 | 自建 eval harness+及格线 |
 | 项目 4：DSH 扩展实战 | 先学「Harness 解剖」 | client-plugin/主题/看板，基于真实 DSH 插件项目 |
 | 🧭 前沿追踪路线图 | 零基础可学，建议学完任一主线后读 | 读论文/复现/开源参与地图；"如何自己跟踪前沿"方法论；资料对照附录 |
+| 📡 **前沿雷达（终章）** | 先学「前沿追踪路线图」 | **怎么始终、持续跟进前沿**：三种失效模式/四段式信息管线/降噪三判据/识范式五判据/agent 替你盯/卡片衰减管理/三档节奏与反脆弱 |
 
 **零基础怎么开始**：① 点侧边栏「📖 术语表」过一遍「LLM 入门」那类；② 学 🌱**LLM 零基础入门**
 （6 讲：什么是大模型 → token 与上下文窗口 → 温度与采样 → 幻觉 → Ollama 装起来 → 4060 上跑通第一个模型）；
