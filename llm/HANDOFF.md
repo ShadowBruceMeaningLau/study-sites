@@ -447,6 +447,7 @@ git log --oneline -5
 | `llm/AUTHOR-BRIEF.md` | 课程 10~23 的 id / 讲目 / 元信息速查 + 通用硬规则 |
 | `llm/README.md` | 站点对外说明（三条主线、每讲结构、质量门清单） |
 | `llm/MATH-FORMULAS.md` | KaTeX 公式写法规范 |
+| `llm/tools/TOOLS-INDEX.md` | **工具索引**：29 个脚本按 6 类分组（门禁/浏览器验证/复现脚本/修复工具/开发辅助/基础设施），说明每个查什么 |
 | `llm/tools/verify-token-growth.py` | 多轮词元增长的复现脚本 |
 | `llm/tools/verify-tool-count.py` | 工具数量 vs 同族近义对选择准确率影响的复现脚本（临时起本地 Ollama 跑对照） |
 | `ZERO-BASIS-STANDARD.md`（根） | 零基础友好度四条硬标准 + 两条编码红线 |

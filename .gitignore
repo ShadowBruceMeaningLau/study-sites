@@ -61,3 +61,7 @@ _*.bak
 # 旧打包文件（OPTIMIZATION-REVIEW.md §4 建议补上）
 *.rar
 *.zip
+
+# 归档包（内容已全部进 git，这些只是同一批文件的历史压缩副本）
+*.rar
+*.zip

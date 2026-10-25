@@ -183,9 +183,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\tray.ps1 -SelfTest
 对物理专业课程表覆盖 **75/75 = 100%，且 75 项全部达"充分"标准**。
 四大力学、数学物理方法、固体物理、核与粒子、天体宇宙、量子信息、计算物理、非线性混沌、广义相对论、
 连续介质与流体、普通物理实验、近代物理实验、物理学史、考研普物强化、考研量子强化均已到齐。
-`start-all.cmd` 已实测：**四个站**（本机地址与局域网地址各测一遍）都返回 HTTP 200，
+`start-all.cmd` 已实测：**五个站**（本机地址与局域网地址各测一遍）都返回 HTTP 200，
 关键资源（KaTeX、simlab 引擎、课程数据、阅读轨迹数据）全部本地可取；
-再启动一次会明确报告四个端口都被占用而不是崩溃。
+再启动一次会明确报告五个端口都被占用而不是崩溃。
 （最新数字见 `physics/README.md` 与 `node physics/tools/validate-curriculum.mjs` 的统计行。）
 
 > **关于质量门的诚实说明**：物理站的**数值、结构契约、公式渲染、离线可用性**有真正的硬门禁兜底
@@ -309,7 +309,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File physics\tools\verify-browser
 
 ## 常见问题
 
-**端口被占用？** `start-all.cmd` 会明确告诉你是哪个站起不来（其余三个照常运行），
+**端口被占用？** `start-all.cmd` 会明确告诉你是哪个站起不来（其余四个照常运行），
 把占用的程序关掉即可；想换端口就用单站脚本，例如 `node physics\tools\serve.mjs 8127 --lan`。
 
 **零基础怎么用？** ① 首页顶部「完全零基础？按这个顺序开始」→ 点「现在开始第 0 课」；

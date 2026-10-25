@@ -1,16 +1,16 @@
 ' ===========================================================================
-'  start-tray.vbs -- start the four study sites in the system tray.
+'  start-tray.vbs -- start the five study sites in the system tray.
 '
 '  Double-click this file: the servers start in the background with NO console
 '  window and NO browser tab. Open the sites from the tray icon (right-click
-'  for the menu, double-click to open all four).
+'  for the menu, double-click to open all five).
 '
 '  This file is also the auto-start target registered by the tray menu:
 '      wscript.exe "<this file>"
 '  so it must stay 100% ASCII and must never open a browser by itself.
 '
 '  Options (normally not needed):
-'      wscript.exe start-tray.vbs -OpenBrowser   ' also open the four sites
+'      wscript.exe start-tray.vbs -OpenBrowser   ' also open the five sites
 '      wscript.exe start-tray.vbs -SelfTest      ' run the built-in self test
 ' ===========================================================================
 Option Explicit
