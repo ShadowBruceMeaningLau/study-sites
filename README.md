@@ -96,6 +96,8 @@ https://shadowbrucemeaninglau.github.io/study-sites/
 
 ### 怎么更新线上内容
 
+> **git push 已修复（2026-10-25）**：本机曾因 http.sslBackend=openssl 配置导致 TLS 握手失败，unexpected eof；改回 Windows 原生 schannel 后端 + 保留 http.proxy 后，etch/push 均正常。现在改完内容直接 git add -A && git commit -m ... && git push 即可，Pages 约 1 分钟自动重建。
+
 本地改完 → 提交 → 推送后 Pages 自动重建（约 1 分钟）。若 `git push` 因网络失败，
 本仓库曾用 GitHub API（Git Data API 建 blob→tree→commit→更新 ref）成功推送过一次，可作备选路径。
 
