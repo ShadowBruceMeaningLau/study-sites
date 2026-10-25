@@ -281,7 +281,11 @@ window.COURSE_PACKS.push({
 > ★ `project-dsh-extension` 的样本是 `D:\DeepseekHarness\DeepseekHarness_Project\1.deepseek_harness本地访问`（真实插件项目：`package.json` 的 `dsh.bundle`/`dsh.client`、`lib/index.js`、`lib/client.js`、`cordis.patch.yml`）。**只写你亲自读到的事实，课程正文不得出现本机路径。**
 ## 6. 质量门（每次改完必跑，全部 exit=0 才算过）
 
-### 6.1 九道门
+### 6.1 十道门
+
+> **第 10 道是 2026-10-25 新加的**：`audit-ui-refs.mjs` 校验 UI 层（`app/*.js`）里引用的课程 id 是否真实存在。
+> 它补上一个真实盲区——`ROADMAP_AREAS` 曾整块残留 cs 站的 47 个课程 id，本站 0/47 命中，
+> 「能力路线图」实际是空壳，而**所有旧门禁都是绿的**（`validate` 读磁盘、不看 app.js 引用了什么）。
 
 ```powershell
 cd D:\ObsidianLocalLib\system1\DSH\2\llm
@@ -294,6 +298,7 @@ node tools\audit-zero-basis.mjs        # 术语首现就地解释（--all 看全
 node tools\audit-math.mjs              # 每段 $...$ 用 KaTeX 真渲染
 node tools\check-python.mjs            # Python 代码块真实执行（纯标准库）
 node tools\audit-quiz-bias.mjs         # 测验位置偏置（答案不能扎堆在某个选项位）
+node tools\audit-ui-refs.mjs           # UI 层课程 id 引用必须真实存在 + ROADMAP 全覆盖（第 10 道）
 ```
 
 ### 6.2 浏览器级验证（改 UI 或新增 lab 后才需要）
