@@ -71,3 +71,4 @@ tools/_*_hub.html
 tools/_serve_subpath.mjs
 
 tools/_publish_via_api.mjs
+tools/_sync_api.mjs
