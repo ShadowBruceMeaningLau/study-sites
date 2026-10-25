@@ -1,11 +1,12 @@
 @echo off
 rem ===========================================================================
-rem  Start ALL FIVE study sites at once, each on its own port:
+rem  Start ALL study sites at once, each on its own port, plus the unified hub:
 rem    CS         : http://127.0.0.1:8123/index.html
 rem    Math       : http://127.0.0.1:8124/index.html
 rem    Physics    : http://127.0.0.1:8125/index.html
 rem    Philosophy : http://127.0.0.1:8126/index.html
 rem    LLM/AI     : http://127.0.0.1:8127/index.html
+rem    Hub        : http://127.0.0.1:8122/index.html  (all five on one page)
 rem  The launcher also prints the LAN addresses, so a phone/tablet on the SAME
 rem  WiFi can open every site (progress is then shared between phone and PC).
 rem  NOTE: intentionally 100%% ASCII (cmd.exe parses .cmd byte by byte and
@@ -15,21 +16,23 @@ setlocal
 cd /d "%~dp0"
 
 echo ============================================================
-echo   Five study sites: CS + Math + Physics + Philosophy + AI
+echo   Study sites: CS + Math + Physics + Philosophy + AI
+echo   Unified hub: http://127.0.0.1:8122/index.html
 echo     CS         http://127.0.0.1:8123/index.html
 echo     Math       http://127.0.0.1:8124/index.html
 echo     Physics    http://127.0.0.1:8125/index.html
 echo     Philosophy http://127.0.0.1:8126/index.html
 echo     LLM/AI     http://127.0.0.1:8127/index.html
+echo     Hub        http://127.0.0.1:8122/index.html
 echo   Phone / tablet on the same WiFi: see the LAN URLs printed below.
-echo   Close this window to stop all five servers.
+echo   Close this window to stop all servers.
 echo ============================================================
 echo.
 
 where node >nul 2>nul
 if %errorlevel%==0 goto use_node
 
-echo [INFO] Node.js not found - opening the five sites directly from disk.
+echo [INFO] Node.js not found - opening the sites directly from disk.
 echo [INFO] Everything works the same; only phone access is unavailable.
 echo.
 start "" "%~dp0cs\index.html"
