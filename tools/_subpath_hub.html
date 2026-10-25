@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>统一入口 · 五个学习站</title>
+<link rel="stylesheet" href="hub.css">
+</head>
+<body>
+
+<div class="hub-wrap">
+
+  <header class="hub-head">
+    <div class="hub-brand">
+      <div class="hub-logo">Hub</div>
+      <div class="hub-brandtext">
+        <h1>五个学习站 · 统一入口</h1>
+        <p>点任意一站进去；想换站就回到本页（浏览器回退，或切回这个标签页）。</p>
+      </div>
+    </div>
+    <button class="btn ghost" id="btnTheme" title="切换深色 / 浅色" aria-label="切换主题">🌗</button>
+  </header>
+
+  <div class="hub-tip" id="hubTip"><b>静态托管模式</b>：五个站是同一域名下的子目录（<code>…/cs/</code>、<code>…/math/</code> …），点卡片即可进入，<b>不依赖本地服务</b>。两处与本地运行时不同：① <b>学习进度只存在当前这台设备的浏览器里</b>（静态托管没有服务端，跨设备同步不可用）；② 状态灯每 <b>800 毫秒</b>超时，显示「离线」通常意味着那个站的目录没部署上去。</div>
+
+  <main class="cards" id="cards"><div class="card" data-site="cs"><div class="card-top"><div class="card-icon">💻</div><div class="card-title"><h2>计算机科学与技术</h2><p>本科互动学习站</p></div><span class="dot up" title="该端口正在服务"><i class=""></i><span>在线</span></span></div><div class="card-meta"><span class="chip">24 门课</span><span class="chip">169 讲</span><span class="chip">204 实验</span><span class="chip">677 题</span><span class="chip strong">系统与底层 · 考研 408</span></div><div class="card-actions"><a class="btn primary" href="../cs/index.html">打开 →</a></div></div><div class="card" data-site="math"><div class="card-top"><div class="card-icon">📐</div><div class="card-title"><h2>基础数学</h2><p>本科互动学习站</p></div><span class="dot up" title="该端口正在服务"><i class=""></i><span>在线</span></span></div><div class="card-meta"><span class="chip">23 门课</span><span class="chip">130 讲</span><span class="chip">176 实验</span><span class="chip">516 题</span><span class="chip strong">分析 / 代数 / 几何</span></div><div class="card-actions"><a class="btn primary" href="../math/index.html">打开 →</a></div></div><div class="card" data-site="physics"><div class="card-top"><div class="card-icon">🔭</div><div class="card-title"><h2>物理学</h2><p>本科互动学习站</p></div><span class="dot up" title="该端口正在服务"><i class=""></i><span>在线</span></span></div><div class="card-meta"><span class="chip">26 门课</span><span class="chip">143 讲</span><span class="chip">224 实验</span><span class="chip strong">仿真实验 · 力热光电</span></div><div class="card-actions"><a class="btn primary" href="../physics/index.html">打开 →</a></div></div><div class="card" data-site="philosophy"><div class="card-top"><div class="card-icon">🦉</div><div class="card-title"><h2>哲学本科</h2><p>互动学习站 · 离线可用</p></div><span class="dot up" title="该端口正在服务"><i class=""></i><span>在线</span></span></div><div class="card-meta"><span class="chip">17 门课</span><span class="chip">85 讲</span><span class="chip strong">含单文件离线版</span></div><div class="card-actions"><a class="btn primary" href="../philosophy/index.html">打开 →</a></div></div><div class="card" data-site="llm"><div class="card-top"><div class="card-icon">🧠</div><div class="card-title"><h2>LLM · Harness · Agent</h2><p>从零基础到 2026 前沿</p></div><span class="dot up" title="该端口正在服务"><i class=""></i><span>在线</span></span></div><div class="card-meta"><span class="chip">31 门课</span><span class="chip">226 讲</span><span class="chip">206 实验</span><span class="chip">684 题</span><span class="chip strong">原理 + 工程 + 前沿追踪</span></div><div class="card-actions"><a class="btn primary" href="../llm/index.html">打开 →</a></div></div></main>
+
+  <footer class="hub-foot">
+    <h2>怎么启动</h2>
+    <ul>
+      <li><b>推荐</b>：双击工作区根目录的 <code>start-tray.vbs</code> —— 五个站静默起在右下角托盘，
+        不开黑窗口、不自动弹网页。右键托盘图标可逐个打开，也能勾选开机自启。</li>
+      <li>想盯着日志：双击 <code>start-all.cmd</code> —— 五站一次起好，日志在同一个窗口里。</li>
+      <li>只跑一个站：用该站目录里的启动脚本（如 <code>cs\start.cmd</code>）。<b>单站模式与本入口互不影响</b>。</li>
+    </ul>
+    <p class="hub-note">
+      本页是一个<b>独立的第六个目录</b>（<code>hub/</code>，端口 8122）。五个站不引用它，它也不改五个站——
+      所以即使本入口打不开，五个站仍然完全可用；反过来，关掉任意一个站也不会影响本页。
+    </p>
+  </footer>
+
+</div>
+
+<script src="hub.js"></script>
+
+
+</body></html>

@@ -68,8 +68,43 @@
     return h || "127.0.0.1";
   }
 
-  function siteUrl(port) {
-    return "http://" + currentHost() + ":" + port + "/index.html";
+  /**
+   * 三种运行模式（决定卡片链接怎么拼、状态灯怎么做）：
+   * ------------------------------------------------------------------
+   *   "port"   本地 serve-all.mjs：五站各占一个端口 → http://host:8123/index.html
+   *   "static" 静态托管（GitHub Pages / 任意静态服务器）：五站是同一域名下的
+   *            子目录 → ../cs/index.html（相对路径，自动适配仓库子路径）
+   *   "file"   直接双击 index.html → 退化成 port 形态但状态灯不可用
+   *
+   * 判定顺序很重要：**托管域名上不允许拼端口**，否则会得到
+   * http://user.github.io:8123/ 这种根本不存在的地址（五张卡片会全废）。
+   * 所以先认「静态托管」，再退回端口模式。
+   */
+  var MODE = (function () {
+    if (location.protocol === "file:") return "file";
+    // 静态托管的判定线索（按可靠性排序）：
+    //  1) 本页路径里带 /hub/ 且不是本地服务端口 → 视为子路径托管
+    //  2) 主机名是 *.github.io / *.pages.dev / *.netlify.app 等托管域
+    var host = location.hostname || "";
+    var hostedHost = /(^|\.)(github\.io|gitlab\.io|pages\.dev|netlify\.app|vercel\.app|surge\.sh|glitch\.me)$/i.test(host);
+    var localHost = /^(localhost|127\.|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
+    if (hostedHost) return "static";
+    // 本地服务但路径是 /<repo>/hub/ 这种（模拟托管）→ 也按静态处理
+    var p = location.pathname || "";
+    if (p.indexOf("/hub/") > 0) return "static";
+    if (localHost || p === "/hub/" || p === "/hub/index.html") return "port";
+    // 其它未知主机：保守按静态处理（静态相对路径在任何 HTTP 主机上都可用）
+    return "static";
+  })();
+
+  /**
+   * 一个站的入口地址。
+   *  - port 模式：http://host:端口/index.html
+   *  - 静态模式：../<dir>/index.html —— 相对路径，天然适配 /<repo>/ 这样的子路径
+   */
+  function siteUrl(site) {
+    if (MODE === "static") return "../" + site.key + "/index.html";
+    return "http://" + currentHost() + ":" + site.port + "/index.html";
   }
 
   /** 判断本页是不是用 file:// 打开的（此时探测无意义） */
@@ -79,12 +114,12 @@
 
   /* --------------------------------------------------------- 在线探测 */
   /**
-   * 探测一个站的端口是否在服务。
-   * 用 no-cors 的 GET + AbortController 超时：我们只关心「有没有响应」，
-   * 不读内容，所以跨端口读不到 body 也没关系。
+   * 探测一个站是否可达。
+   *  - port 模式：探那个端口（no-cors GET，只关心「有没有人应答」）
+   *  - static 模式：探相对路径（同源，可读状态码，404 即「这个站不存在」）
    * 任何异常都归为「离线」，绝不上抛——状态灯不能影响页面可用性。
    */
-  function probe(port, cb) {
+  function probe(site, cb) {
     if (isFileProtocol()) { cb("unknown"); return; }
     var done = false;
     var ctrl = null;
@@ -101,17 +136,25 @@
     try {
       ctrl = new AbortController();
       timer = setTimeout(function () { finish("down"); }, PROBE_TIMEOUT);
-      fetch("http://" + currentHost() + ":" + port + "/index.html", {
-        method: "GET",
-        mode: "no-cors",
-        cache: "no-store",
-        signal: ctrl.signal
-      }).then(function () {
-        // no-cors 下拿到的是 opaque 响应：能走到 then 就说明端口有人在听
-        finish("up");
-      }).catch(function () {
-        finish("down");
-      });
+
+      if (MODE === "static") {
+        // 同源请求：能拿到状态码，200 才算在线（404 = 该站目录不存在）
+        fetch(siteUrl(site), { method: "GET", cache: "no-store", signal: ctrl.signal })
+          .then(function (r) { finish(r && r.ok ? "up" : "down"); })
+          .catch(function () { finish("down"); });
+      } else {
+        fetch("http://" + currentHost() + ":" + site.port + "/index.html", {
+          method: "GET",
+          mode: "no-cors",
+          cache: "no-store",
+          signal: ctrl.signal
+        }).then(function () {
+          // no-cors 下拿到的是 opaque 响应：能走到 then 就说明端口有人在听
+          finish("up");
+        }).catch(function () {
+          finish("down");
+        });
+      }
     } catch (e) {
       finish("down");
     }
@@ -164,14 +207,14 @@
     var actions = el("div", "card-actions");
 
     var aGo = el("a", "btn primary");
-    aGo.href = siteUrl(site.port);
+    aGo.href = siteUrl(site);
     aGo.textContent = "打开 →";
     actions.appendChild(aGo);
 
     card.appendChild(actions);
 
     /* 探测状态并更新灯 */
-    probe(site.port, function (state) {
+    probe(site, function (state) {
       dot.className = "dot " + (state === "up" ? "up" : state === "down" ? "down" : "");
       lamp.className = "";
       if (state === "up") {
@@ -225,6 +268,13 @@
         tip.className = "hub-tip offline";
         tip.innerHTML = "本页是用 <code>file://</code> 直接打开的：<b>状态灯全部显示「未知」</b>（没有服务器可探测）。" +
           "下面每个「打开」按钮指向本地端口，需要先启动服务（双击 <code>start-tray.vbs</code> 或 <code>start-all.cmd</code>）才有内容。";
+      } else if (MODE === "static") {
+        // 静态托管（GitHub Pages 等）：这里如实说明两件与本地运行时不同的事。
+        tip.className = "hub-tip";
+        tip.innerHTML = "<b>静态托管模式</b>：五个站是同一域名下的子目录（<code>…/cs/</code>、<code>…/math/</code> …），" +
+          "点卡片即可进入，<b>不依赖本地服务</b>。两处与本地运行时不同：" +
+          "① <b>学习进度只存在当前这台设备的浏览器里</b>（静态托管没有服务端，跨设备同步不可用）；" +
+          "② 状态灯每 <b>" + PROBE_TIMEOUT + " 毫秒</b>超时，显示「离线」通常意味着那个站的目录没部署上去。";
       } else {
         var lan = currentHost();
         var isLoopback = lan === "127.0.0.1" || lan === "localhost";

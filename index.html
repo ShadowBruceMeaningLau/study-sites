@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>五个学习站 · 统一入口</title>
+<!-- 根跳转页：访问 https://<user>.github.io/<repo>/ 时直接进入统一入口。
+     用相对路径 ./hub/ ，这样无论仓库叫什么都对；同时用 REPLACE 避免在浏览器
+     历史里留下这条中间页，用户按「返回」能直接离开本站。 -->
+<meta http-equiv="refresh" content="0; url=./hub/index.html">
+<style>
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: grid; place-items: center;
+    background: #0f1115; color: #e7ebf3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 15px;
+  }
+  a { color: #5aa9ff; }
+  .box { text-align: center; padding: 24px; }
+  .box p { color: #a3adc0; margin: 8px 0 0; font-size: 13.5px; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <p>正在进入统一入口…</p>
+    <p>如果没有任何跳转，请手动打开 <a href="./hub/index.html">hub/index.html</a>。</p>
+  </div>
+  <script>
+    // meta refresh 在极少数浏览器/预览器里不生效，这里补一次跳转。
+    location.replace("./hub/index.html");
+  </script>
+</body>
+</html>
