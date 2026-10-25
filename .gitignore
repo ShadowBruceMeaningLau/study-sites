@@ -65,3 +65,7 @@ _*.bak
 # 归档包（内容已全部进 git，这些只是同一批文件的历史压缩副本）
 *.rar
 *.zip
+
+# 临时验证产物（DOM 快照、子路径模拟器）
+tools/_*_hub.html
+tools/_serve_subpath.mjs
