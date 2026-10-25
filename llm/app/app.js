@@ -1148,7 +1148,7 @@
     hits = hits.slice(0, 14);
     pop.innerHTML = "";
     if (!hits.length) {
-      pop.appendChild(el("div", "search-hit", "<div class='t'>没有匹配结果</div><div class='m'>试试「进程调度」「B+ 树」「补码」「TCP」等关键词</div>"));
+      pop.appendChild(el("div", "search-hit", "<div class='t'>没有匹配结果</div><div class='m'>试试「注意力」「KV cache」「提示注入」「LoRA」「余弦相似度」等关键词</div>"));
     }
     hits.forEach(function (h) {
       var d = el("div", "search-hit");
