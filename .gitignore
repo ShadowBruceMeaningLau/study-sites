@@ -72,3 +72,6 @@ tools/_serve_subpath.mjs
 
 tools/_publish_via_api.mjs
 tools/_sync_api.mjs
+
+tools/_run_gates.ps1
+llm/tools/_run_gates.ps1

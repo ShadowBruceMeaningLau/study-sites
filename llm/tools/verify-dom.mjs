@@ -38,7 +38,12 @@ const EXPECT = {
   "course-narch": ["下一代模型架构", "lesson-row"],
   "lesson-narch-1": ["什么才算一次真架构改动", "qcard"],
   "course-wm": ["世界模型与生成范式", "lesson-row"],
-  "lesson-wm-1": ["预测对象", "qcard"]
+  "lesson-wm-1": ["预测对象", "qcard"],
+  "course-pf": ["持续学习实验台", "lesson-row"],
+  "lesson-pf-3": ["遗忘矩阵", "qcard"],
+  "course-po": ["优化器对照研究", "lesson-row"],
+  "course-pm": ["给 Agent 装一套记忆", "lesson-row"],
+  "lesson-pm-3": ["授权", "qcard"]
 };
 
 let fail = 0;

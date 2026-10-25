@@ -16,6 +16,7 @@
     "agent-protocols-2026", "tool-calling", "rag", "finetuning-lora",
     "agent-core", "memory-architecture", "eval-harness", "agent-security",
     "project-rag", "project-cli-agent", "project-evals", "project-dsh-extension",
+    "project-forgetting-lab", "project-optimizer-study", "project-memory-agent",
     "frontier-tracking", "frontier-radar"
   ];
   // 主线排序：让"学习路径"按三条主线展示（想调整顺序改这里即可）
@@ -772,6 +773,7 @@
     { name: "工具、检索与微调", ids: ["tool-calling", "rag", "finetuning-lora"] },
     { name: "Agent、评测与安全", ids: ["agent-core", "memory-architecture", "eval-harness", "agent-security"] },
     { name: "实战项目", ids: ["project-rag", "project-cli-agent", "project-evals", "project-dsh-extension"] },
+    { name: "研究侧实验", ids: ["project-forgetting-lab", "project-optimizer-study", "project-memory-agent"] },
     { name: "前沿追踪", ids: ["frontier-tracking", "frontier-radar"] }
   ];
 

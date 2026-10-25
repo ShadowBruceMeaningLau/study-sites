@@ -469,7 +469,7 @@ if (FIXTURE) {
   ok(true, "隔离自测模式：跳过完整课程集与服务端内容规模断言");
 } else try {
   const ids = courses.map((c) => c.id);
-  // LLM 站主干清单：31 门全部交付，任何一门掉线都算失败。
+  // LLM 站主干清单：34 门全部交付，任何一门掉线都算失败。
   // ★ 新增课程后必须同时更新这里与 app/app.js 的 ORDER——漏一处就会静默少课。
   const must = [
     "llm-zero-basics", "python-basics-ai", "ml-dl-basics", "neural-networks",
@@ -482,16 +482,17 @@ if (FIXTURE) {
     "agent-protocols-2026", "tool-calling", "rag", "finetuning-lora",
     "agent-core", "memory-architecture", "eval-harness", "agent-security",
     "project-rag", "project-cli-agent", "project-evals", "project-dsh-extension",
+    "project-forgetting-lab", "project-optimizer-study", "project-memory-agent",
     "frontier-tracking", "frontier-radar"
   ];
   const missing = must.filter((m) => !ids.includes(m));
   ok(missing.length === 0, "培养方案主干课程齐全（" + courses.length + " 门 / 应含 " + must.length + " 门主干）", "缺：" + missing.join(", "));
   const labCount = lessons.reduce((n, x) => n + (x.l.blocks || []).filter((b) => b.type === "interactive").length, 0);
   // 收口门槛：与 cs 站（204 个实验）同数量级；按 2026-10-25 实测 193 留 5% 余量。
-  ok(labCount >= 195, "交互实验总数 = " + labCount);
+  ok(labCount >= 212, "交互实验总数 = " + labCount);
   const qCount = lessons.reduce((n, x) => n + (x.l.quiz || []).length, 0);
   // 收口门槛：与 cs 站（677 题）同数量级；按 2026-10-25 实测 645 留 5% 余量。
-  ok(qCount >= 645, "测验题总数 = " + qCount);
+  ok(qCount >= 700, "测验题总数 = " + qCount);
   const dup = {};
   let dupN = 0;
   lessons.forEach(({ l }) => {
