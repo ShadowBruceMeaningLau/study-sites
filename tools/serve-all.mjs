@@ -1,10 +1,10 @@
 // ============================================================================
-//  serve-all.mjs —— 一次启动五个学习站的服务，并把网址（含手机可用的局域网地址）全部打印出来
+//  serve-all.mjs —— 一次启动五个学习站 + 统一入口，并把网址（含手机可用的局域网地址）全部打印出来
 //
 //  用法：node tools/serve-all.mjs [--lan | --local]
 //        （不带参数时默认 --lan：监听 0.0.0.0，手机/平板连同一个 WiFi 就能打开）
 //
-//  为什么是「五个服务」而不是「一个服务 + 五个路径」：
+//  为什么是「多个服务」而不是「一个服务 + 多个路径」：
 //  每个站用自己的端口、自己的目录当根，所以
 //    · 任何一个站挂掉/端口被占，不影响另外四个；
 //    · 每个站的进度各存各的（<站>/.progress/），互不干扰；
@@ -33,8 +33,14 @@ const SITES = [
   { key: "math", label: "数学", dir: "math", port: 8124 },
   { key: "physics", label: "物理", dir: "physics", port: 8125 },
   { key: "philosophy", label: "哲学", dir: "philosophy", port: 8126 },
-  { key: "llm", label: "AI", dir: "llm", port: 8127 }
+  { key: "llm", label: "AI", dir: "llm", port: 8127 },
+  // 统一入口（第 6 个目录）：五张卡片点进各站。它是独立目录，五站都不引用它，
+  // 所以它起不来也不影响任何学习站；反之关掉任一学习站也不影响入口页。
+  { key: "hub", label: "入口", dir: "hub", port: 8122, isHub: true }
 ];
+
+/** 真正提供课程内容的站（不含统一入口）：打印「N 个学习站」时用这个数 */
+const STUDY = SITES.filter((s) => !s.isHub);
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -186,7 +192,7 @@ function finish() {
 
   console.log("");
   console.log(line);
-  console.log("  五个学习站已启动" + (LAN ? "（手机 / 平板连同一个 WiFi 即可打开）" : "（仅本机可访问）"));
+  console.log("  " + STUDY.length + " 个学习站已启动" + (LAN ? "（手机 / 平板连同一个 WiFi 即可打开）" : "（仅本机可访问）"));
   console.log(line);
   for (const r of results) {
     if (!r) continue;
@@ -212,7 +218,7 @@ function finish() {
       ? "  [提示] 想用手机打开：右键托盘图标 → 服务 → 取消勾选「仅本机访问（关掉手机访问）」"
       : "  [提示] 想用手机打开：node tools\\serve-all.mjs --lan");
   }
-  console.log("  五个站各自独立：某个站端口被占只影响它自己，其余照常运行。");
+  console.log("  各站各自独立：某个站端口被占只影响它自己，其余照常运行。");
   console.log(FROM_TRAY
     ? "  停止全部服务：右键托盘图标 → 退出（停止服务）"
     : "  停止全部服务：关闭本窗口，或按 Ctrl+C");

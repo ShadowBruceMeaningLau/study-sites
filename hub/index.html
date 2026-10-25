@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>统一入口 · 五个学习站</title>
+<link rel="stylesheet" href="hub.css">
+</head>
+<body>
+
+<div class="hub-wrap">
+
+  <header class="hub-head">
+    <div class="hub-brand">
+      <div class="hub-logo">Hub</div>
+      <div class="hub-brandtext">
+        <h1>五个学习站 · 统一入口</h1>
+        <p>点任意一站进去；想换站就回到本页（浏览器回退，或切回这个标签页）。</p>
+      </div>
+    </div>
+    <button class="btn ghost" id="btnTheme" title="切换深色 / 浅色" aria-label="切换主题">🌗</button>
+  </header>
+
+  <div class="hub-tip" id="hubTip">
+    正在探测各站状态…（用 <code>file://</code> 直接双击本页打开时，状态灯会显示为「未知」，
+    这是正常的：此时没有本地服务器可探测。）
+  </div>
+
+  <main class="cards" id="cards"></main>
+
+  <footer class="hub-foot">
+    <h2>怎么启动</h2>
+    <ul>
+      <li><b>推荐</b>：双击工作区根目录的 <code>start-tray.vbs</code> —— 五个站静默起在右下角托盘，
+        不开黑窗口、不自动弹网页。右键托盘图标可逐个打开，也能勾选开机自启。</li>
+      <li>想盯着日志：双击 <code>start-all.cmd</code> —— 五站一次起好，日志在同一个窗口里。</li>
+      <li>只跑一个站：用该站目录里的启动脚本（如 <code>cs\start.cmd</code>）。<b>单站模式与本入口互不影响</b>。</li>
+    </ul>
+    <p class="hub-note">
+      本页是一个<b>独立的第六个目录</b>（<code>hub/</code>，端口 8122）。五个站不引用它，它也不改五个站——
+      所以即使本入口打不开，五个站仍然完全可用；反过来，关掉任意一个站也不会影响本页。
+    </p>
+  </footer>
+
+</div>
+
+<script src="hub.js"></script>
+</body>
+</html>
