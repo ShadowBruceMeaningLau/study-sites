@@ -385,27 +385,35 @@ git log --oneline -5
 ### 9.2 `protolab` 是文档笔误
 `CONTENT-SPEC.md §3` 曾写 `protolab`，但 `validate` 的 `LABS` 与 `app/labs.js` 的 `RENDERERS` 都是 **`protolab`**。照文档写会报 4 处错。**已修校验器 9 处。**
 
-### 9.4 ★子代理失败的真正原因与可恢复性（本次会话实测，重要）
+### 9.4 ★子代理「输出预算耗尽」不是死局：**发「继续」就能接着写**（已纠正的错误结论）
 
-**结论：子代理"离线"不是连接坏了，是上下文/输出预算与并发冲突造成的。**
+**★ 这一节曾经写错，2026-10-25 已按实测纠正。** 旧结论是「`ran out of room` → ❌ 只能新开一个接手」，
+**那是错的**：错误信息本身已经说明「已输出内容保留在对话中，发送『继续』可让模型接着输出」。
+正确处置是 **`send_message` 发「继续」**，而不是抛弃它、新开一个。
 
-| 通知措辞 | 真实原因 | 可恢复 |
+| 通知措辞 | 真实原因 | 可恢复性 |
 |---|---|---|
-| `ran out of room before it finished` | 单次输出预算耗尽（写的文件太大，如一门 40KB 课） | ❌ 只能新开一个接手同一文件 |
-| `failed before it finished. It left no closing message` | 运行期错误（工具异常 / 写冲突） | ❌ 该 session 已终结 |
-| `finished and will do no further work` | 正常完成，只是 inactive | ⚠️ `send_message` 能发但**不保证**其 provider 可用 |
+| `ran out of room before it finished` | **单次**输出预算耗尽；对话与已落盘内容都在 | ✅ **发「继续」即可续写**（必要时配更小的粒度） |
+| `failed before it finished. It left no closing message` | 运行期错误（工具异常 / 写冲突） | ⚠️ 先试 send_message；仍无反应再新开 |
+| `finished and will do no further work` | 正常完成，只是 inactive | ✅ `send_message` 会**重新拉起**它继续干活 |
 
-**实测证据**：
-- 极小任务（2 次工具调用）的子代理**每次都成功**（如探测返回 `PROBE-ALIVE-1`）
-- 大任务（写整门 40KB 课）的子代理**几乎必然 `ran out of room`**
-- 早期 `spawn_teammate` 的 `course-author-N` 绑旧 provider（`deepseek-ai/*`、`dmodel`），发消息毫无反应
+**本会话的正面证据（2026-10-25 覆盖度专项）**：
+- `author-memory` 第一次因「一次写 6 讲」耗尽预算、零落盘。**没有新开人**，而是给它发「只写 2 讲」，
+  它立刻交付 mem-1/mem-2；再发「继续 mem-3/mem-4」→ 交付；再发「继续 mem-5/mem-6」→ 6 讲齐。
+  **同一个人、同一门课、累计 6 讲，全靠「继续」串起来。**
+- `sevo-a` 同理：从 1 讲 → 2 讲 → 3 讲 → 5 讲 → 7 讲，五轮全是同一个 teammate。
+- `author-continual` / `author-lalg` 也是「2 讲一批 + 继续」各拿满 6 讲。
 
-**有效做法（已验证）**：
-1. **一次只让它写 2~3 讲**，明确要求「先落盘 → 跑门禁 → 报告」
-2. **一个文件只派一个人**，派发时写清 `write_scopes`
-3. 派发前查文件是否已存在、最近是否被改（见 §9.1 规则 2）
-4. 接收交付**不要只信退出码**：先 `node --check`、数讲号、比对字节数、看关键数字是否还在
-5. **git 是你的安全网**：给它一个基线提交，被覆盖就 `git checkout <commit> -- <file>` 恢复（本次真实用到：子代理用 3 讲版覆盖了 tool-calling 的 7 讲版，靠 `git checkout 12c6926 -- llm/data/tool-calling.js` 恢复）
+**代价对比（真实发生）**：我一开始误信旧结论，连续 `spawn_teammate` 新开人，
+结果撞上 **「Team member limit 8 reached」**，反而让 `author-memory` 的任务派不出去。
+**「继续」既省名额，也省掉重新交代上下文的成本。**
+
+**正确开工姿势**：
+1. **先发「继续」**，不要先新开。若它仍在 running，消息会在最近的 step 边界被收到。
+2. 续写时**把粒度调小**（一次 1~2 讲），并**禁止它再读长文档**（CONTENT-SPEC / 参考课 40KB+ 会把预算一次烧光）。
+3. 派发时就把「骨架 + block 类型 + quiz 形态」直接写进消息里，它不必去读规格文件。
+4. 只在新开成员时才注意**名额上限 8 人**；复活旧成员不占新名额。
+5. 接收交付**不要只信退出码**：`node --check`、数讲号、`git diff --numstat` 看是否为纯追加（`<N> 0`）。
 
 **已发生的四次并发事故（记下来避免再犯）**：
 - `agent-core.js`：两个子代理各写一套 ag-4~ag-9 → 24 条重复 id 报错

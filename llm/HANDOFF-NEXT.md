@@ -276,9 +276,21 @@ $o = node tools\validate-curriculum.mjs 2>&1; "EXIT=$LASTEXITCODE"; $o | Select-
 `glossary.js` 是 CRLF + 超长单行，我用正则锚点插入连续失败 3 次（换行被吃、逗号错位、闭合括号被替换）。
 **正确做法**：脚本里 load 旧数据 → 内存合并 → 整份重新序列化写回。
 
-### 7.6 子代理额度
+### 7.6 子代理「输出预算耗尽」的正确处置：**发「继续」**
 
-**一次只让它写 2~3 讲**，并要求「先落盘 → 跑门 → 报告」。让它写整门 40KB 课**必然** `ran out of room`。
+**★ 纠正**：`ran out of room before it finished` **不是死局**。对话与已落盘内容都在，
+`send_message` 发一句「继续」它就会接着写。**不要因此新开一个成员**——
+新开会撞「Team member limit 8 reached」，还白付一遍上下文的钱。
+
+本专项的真实对照（同一份工作，两种处置）：
+- `author-memory`（正确）：一次 6 讲耗尽 → 发「只写 2 讲」→ 交付 → 发「继续 mem-3/mem-4」→ 交付
+  → 发「继续 mem-5/mem-6」→ **6 讲齐，全程同一个人**。
+- 我最初的做法（错误）：以为要换人，连开 5 个新成员 → 撞 8 人上限 → 反而派不出任务。
+
+**续写要点**：
+1. 续写时**把粒度调小**（一次 1~2 讲），并**禁止它再读 CONTENT-SPEC / 参考课**（那些文件 40KB+ 会一次烧光预算）。
+2. 派发消息里直接内联「骨架 + block 类型 + quiz 形态」，让它不必读规格。
+3. `finished and will do no further work` 的 inactive 成员，`send_message` 会把**它重新拉起**继续干活。
 
 ### 7.7 `validate` 查不出「课程没接线」
 
