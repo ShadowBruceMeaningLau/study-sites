@@ -59,6 +59,47 @@
 
 ---
 
+## 线上访问（GitHub Pages）
+
+**直接打开这个网址，手机电脑都行：**
+
+```
+https://shadowbrucemeaninglau.github.io/study-sites/
+```
+
+根地址会自动跳转到统一入口，点哪张卡片进哪个站。
+
+| 站 | 线上地址 |
+|---|---|
+| 统一入口 | `/study-sites/` 或 `/study-sites/hub/` |
+| 计算机 | `/study-sites/cs/` |
+| 数学 | `/study-sites/math/` |
+| 物理 | `/study-sites/physics/` |
+| 哲学 | `/study-sites/philosophy/` |
+| AI（LLM/Harness/Agent） | `/study-sites/llm/` |
+
+### 线上与本地运行时的三处差异（务必知道）
+
+1. **学习进度只存在当前设备的浏览器里。**
+   GitHub Pages 是纯静态托管，**没有服务端**，本地的 `/api/progress` 跨设备同步不可用。
+   手机上学、电脑上看不到——两边各存各的（离线学习本身完全正常）。
+2. **没有端口。** 线上五站是同一域名下的**子目录**（`/cs/`、`/math/` …），不是 `:8123` 这些端口。
+   Hub 会自动识别：本地运行时用端口形式，线上自动切成相对路径。
+3. **状态灯语义变了。** 线上显示「离线」通常意味着该站的目录没部署上去，而不是「服务没启动」。
+
+### 为什么能这样托管
+
+- 六个站全部**纯静态、零依赖、无构建步骤**，都能直接用 `file://` 打开，所以静态托管天然适配
+- 各站代码里**没有任何绝对路径引用**（实测 cs/math/physics/philosophy/llm/hub 全为 0 处），子路径部署不会失效
+- 仓库根有 `.nojekyll`：仓库里有 `_demo.txt` 等 `_` 开头文件，GitHub Pages 默认用 Jekyll 会忽略所有 `_` 路径
+- 仓库根 `index.html` 是跳转页（`meta refresh` + `location.replace` 双保险）
+
+### 怎么更新线上内容
+
+本地改完 → 提交 → 推送后 Pages 自动重建（约 1 分钟）。若 `git push` 因网络失败，
+本仓库曾用 GitHub API（Git Data API 建 blob→tree→commit→更新 ref）成功推送过一次，可作备选路径。
+
+---
 ## 统一入口（hub）：一个页面切换五站
 
 `hub/` 是一个独立的第六个目录（端口 **8122**），只做一件事：把五个站列成五张卡片，

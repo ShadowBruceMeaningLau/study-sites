@@ -69,3 +69,5 @@ _*.bak
 # 临时验证产物（DOM 快照、子路径模拟器）
 tools/_*_hub.html
 tools/_serve_subpath.mjs
+
+tools/_publish_via_api.mjs
