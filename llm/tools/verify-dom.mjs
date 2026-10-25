@@ -34,7 +34,11 @@ const EXPECT = {
   "course-memory": ["Agent 记忆架构", "lesson-row"],
   "lesson-mem-2": ["记忆是树", "qcard"],
   "course-lalg": ["下一代学习算法", "lesson-row"],
-  "lesson-lalg-2": ["优化器", "qcard"]
+  "lesson-lalg-2": ["优化器", "qcard"],
+  "course-narch": ["下一代模型架构", "lesson-row"],
+  "lesson-narch-1": ["什么才算一次真架构改动", "qcard"],
+  "course-wm": ["世界模型与生成范式", "lesson-row"],
+  "lesson-wm-1": ["预测对象", "qcard"]
 };
 
 let fail = 0;

@@ -49,6 +49,10 @@ $routes = [ordered]@{
   "lesson-mem-2"    = "/c/memory-architecture/mem-2"
   "course-lalg"     = "/c/learning-algorithms"
   "lesson-lalg-2"   = "/c/learning-algorithms/lalg-2"
+  "course-narch"    = "/c/next-gen-architecture"
+  "lesson-narch-1"  = "/c/next-gen-architecture/narch-1"
+  "course-wm"       = "/c/world-model-generation"
+  "lesson-wm-1"     = "/c/world-model-generation/wm-1"
 }
 
 foreach ($name in $routes.Keys) {

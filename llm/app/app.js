@@ -11,6 +11,7 @@
     "frontier-models", "posttraining-alignment",
     // 研究侧四门（2026-10-25 专项补全）：全部归主线 A，排在 B 线之前
     "continual-learning", "self-evolution", "learning-algorithms",
+    "next-gen-architecture", "world-model-generation",
     "prompt-engineering", "inference-api", "harness-anatomy",
     "agent-protocols-2026", "tool-calling", "rag", "finetuning-lora",
     "agent-core", "memory-architecture", "eval-harness", "agent-security",
@@ -757,18 +758,21 @@
    * 聚合每门课的 advanced 进阶包（教材 / 招牌 lab / 从零实现 / 验收判据），按领域分组。
    * 设计原则：不设时间节点，只用「顺序 + 前置 + 验收判据」标定掌握程度。
    */
+  /**
+   * ★ 这份分组必须只包含本站真实课程 id。曾经这里写的是 cs 站/数学站的 47 个 id，
+   * 在本站一个都不存在，导致整页只剩三段硬编码文字、课程卡片全部渲染不出来。
+   * tools/_check_roadmap.mjs 会校验「全覆盖、无多余」，改这里之后要跑它。
+   */
   var ROADMAP_AREAS = [
-    { name: "零基础与程序设计", ids: ["cs-zero-basics", "math-zero-basics", "programming-basics", "oop-java", "math-foundation", "discrete-math"] },
-    { name: "系统底层：数字逻辑 / 组成原理 / 体系结构", ids: ["digital-logic", "computer-organization", "computer-architecture", "systems-practice"] },
-    { name: "操作系统与并发", ids: ["operating-systems", "parallel-distributed"] },
-    { name: "网络与安全", ids: ["computer-networks", "information-security"] },
-    { name: "数据与工程", ids: ["database-systems", "software-engineering"] },
-    { name: "算法与理论", ids: ["data-structures", "ds-sorting-searching", "ds-graph-advanced", "algorithms", "computation-theory", "cs408-intensive", "cs408-drills"] },
-    { name: "语言、编译器与智能", ids: ["compilers", "ai-ml"] },
-    { name: "数学：分析主线", ids: ["math-analysis-1", "math-analysis-2", "math-analysis-3", "real-analysis", "functional-analysis", "complex-analysis", "fourier-analysis", "ode", "pde"] },
-    { name: "数学：代数与几何主线", ids: ["linear-algebra-1", "linear-algebra-2", "abstract-algebra", "analytic-geometry", "differential-geometry", "topology"] },
-    { name: "数学：随机与计算", ids: ["probability", "statistics", "numerical-analysis", "combinatorics"] },
-    { name: "数学：选修与人文", ids: ["number-theory", "set-theory", "math-history"] }
+    { name: "零基础与编程地基", ids: ["llm-zero-basics", "python-basics-ai"] },
+    { name: "深度学习原理", ids: ["ml-dl-basics", "neural-networks", "tokenizer-vocab", "attention-transformer"] },
+    { name: "预训练与前沿架构", ids: ["pretraining-inference", "frontier-models", "next-gen-architecture", "world-model-generation"] },
+    { name: "后训练与研究侧方法", ids: ["posttraining-alignment", "continual-learning", "self-evolution", "learning-algorithms"] },
+    { name: "接口与 Harness 骨架", ids: ["prompt-engineering", "inference-api", "harness-anatomy", "agent-protocols-2026"] },
+    { name: "工具、检索与微调", ids: ["tool-calling", "rag", "finetuning-lora"] },
+    { name: "Agent、评测与安全", ids: ["agent-core", "memory-architecture", "eval-harness", "agent-security"] },
+    { name: "实战项目", ids: ["project-rag", "project-cli-agent", "project-evals", "project-dsh-extension"] },
+    { name: "前沿追踪", ids: ["frontier-tracking", "frontier-radar"] }
   ];
 
   function pageRoadmap() {
@@ -778,34 +782,36 @@
     var wrap = el("div", "wrap");
     wrap.appendChild(el("h1", "page-title", "🎯 能力路线图：从「学会」到「学到很好」"));
     wrap.appendChild(el("p", "lead",
-      "本站课程负责第一层「概念校准」。要到达「很好」，还要走完后面三层：经典教材精读 → 真实系统实现 → 创造与输出。" +
+      "本站课程负责第一层「概念校准」。要到达「很好」，还要走完后面三层：配书精读 → 亲手跑通一个真实系统 → 创造与输出。" +
       "下面每门课都给了配书、招牌实验、从零实现的项目与验收判据。只讲顺序与前置，不设时间节点——" +
       "你的判据是「这一层的验收标准做到了吗」，而不是「学了多久」。"));
 
     // 四级判据
     var lv = el("div", "block concept");
     lv.innerHTML = "<h3>什么是「学到很好的程度」<span class='tag'>四个硬指标</span></h3>" + MD.md([
-      "1. **能重建**：给你一张白纸，能从零写出这个领域最核心的机制（内存分配器、调度器、编译器后端、Raft）。",
-      "2. **能诊断**：给一段坏代码或一个慢系统，能定位到是局部性、锁竞争、伪共享还是算法问题。",
-      "3. **能讲清**：能对没学过的人讲明白，并回答「为什么不用另一种做法」。",
+      "1. **能重建**：给你一张白纸，能从零写出这个领域最核心的机制——一个注意力的前向、一个最小 harness 的工具循环、一次 LoRA 的合并、一个最小的评测打分器。",
+      "2. **能诊断**：给一段 agent 打转的轨迹，能定位到是提示写得含糊、工具描述让模型误用、还是终止条件本身设错了。",
+      "3. **能讲清**：能对没学过的人讲明白，并回答「为什么不用另一种做法」——比如为什么用检索而不是微调，为什么用批处理而不是加卡。",
       "4. **能被引用**：你写的东西真的有人用（项目、文章、被合并的 PR）。",
       "",
       "> 只到 1、2 是「很强」；加上 3、4 才是「很好」。第 4 条是自学最容易漏掉的一环——它必须由外部世界给，不能自己发给自己。"
-    ].join("\\n"));
+    ].join("\n"));
     wrap.appendChild(lv);
 
     // 顺序与前置
     var order = el("div", "block steps");
     order.innerHTML = "<h3>顺序与前置关系 <span class='tag'>不设时间，只看前置</span></h3>" + MD.md([
-      "- **第一圈（打地基）**：程序设计基础 → 数字逻辑 → 数据结构 → 算法 → 计算机组成原理 → 操作系统 → 计算机网络 → 数据库。",
-      "- **第二圈（补理论与工程）**：离散数学、编译原理、计算理论、信息安全、并行与分布式、软件工程。",
-      "- **第三圈（深挖方向）**：体系结构、领域专用（AI/ML、图形、嵌入式……）。",
+      "- **主线 A（原理）：模型是什么、为什么这样表现**。零基础入门 → Python → 机器学习与深度学习 → 神经网络 → 分词 → 注意力与 Transformer → 预训练与推理 → 前沿模型专题、下一代架构与世界模型 → 后训练与对齐 → 持续学习、自进化、下一代学习算法。",
+      "- **主线 B（工程）：把模型接成一个能干活的系统**。提示词工程 → 推理 API → Harness 解剖 → 协议生态 → 工具调用、RAG、微调 → Agent 核心与记忆架构 → 评测 Harness、Agent 安全。",
+      "- **主线 C（实战与前沿追踪）：把它们拼成完整的东西，并且自己跟住变化**。四个项目课 → 前沿追踪路线图 → 前沿雷达。",
       "",
-      "跨圈是允许的：如果某个领域让你特别兴奋，先深挖它，回头再补前置。但**倒着学必修会卡住**：" +
-      "操作系统的 xv6 lab 需要 C 与指针；编译器的后端需要数据结构与体系结构；分布式共识需要网络与并发。",
+      "三条主线之间是允许交叉的：做应用的人可以先把 B 线打通再回去补 A 线。但**倒着学关键课会卡住**：" +
+      "「Agent 核心」需要先学「工具调用」，否则你不知道工具循环在哪一环出错；" +
+      "「微调入门」需要先学「后训练与对齐前沿」，否则分不清 SFT 与对齐各自解决什么；" +
+      "「Agent 记忆架构」需要先学「Agent 核心」与「Agent 协议生态（2026-10）」，否则记不住「记忆」与「上下文」不是一回事。",
       "",
       "> 每门课页面顶部的「🎒 学这门课之前」直接告诉你前置；本页每张卡片的「验收判据」告诉你什么时候算过关。"
-    ].join("\\n"));
+    ].join("\n"));
     wrap.appendChild(order);
 
     var state = PROGRESS.state();
@@ -856,11 +862,11 @@
     self.innerHTML = "<h3>每周一次的自我检验 <span class='tag'>替代外部压力</span></h3>" + MD.md([
       "- 这一周我**交付**了什么能跑的东西？（不是「看了多少章」）",
       "- 这个东西**别人**能跑通吗？（README、依赖、测试齐全吗）",
-      "- 这一周有没有**被人否定**过一次？（代码 review、提问被纠正、测试没过）",
+      "- 这一周有没有**被人否定**过一次？（代码 review、提问被纠正、评测没过、复现对不上）",
       "- 我能不能**不看资料**讲清这周学的核心机制？",
       "",
       "> 四个问题里如果连续两周都是「没有」，说明你在舒适区里空转——纯兴趣学习最大的风险不是来不及，而是**无声地停下来**。"
-    ].join("\\n"));
+    ].join("\n"));
     wrap.appendChild(self);
 
     // 导出进度
@@ -879,7 +885,7 @@
         L.push("");
       });
       var fname = "能力路线图-" + new Date().toISOString().slice(0, 10) + ".md";
-      var blob = new Blob([L.join("\\n")], { type: "text/markdown;charset=utf-8" });
+      var blob = new Blob([L.join("\n")], { type: "text/markdown;charset=utf-8" });
       var a = el("a");
       a.href = URL.createObjectURL(blob);
       a.download = fname;
